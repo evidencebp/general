@@ -1,5 +1,5 @@
 # get general into repos table (upload if needed)
-drop table if exists general.repos;
+# drop table if exists general.repos;
 
 # Copy repositories relevant files
 drop table if exists general.files;
@@ -37,6 +37,7 @@ cnt.*
  cnt.id = f.id
  ;
 
+drop table if exists general.commits;
 
 create table
 general.commits
@@ -51,12 +52,17 @@ r.repo_name as repo_name
 # Note - all the properties bellow make compuations more efficient but do not exist in Google's scheme
 , max(author.name) as author_name
 , max(author.email) as author_email
-, max(DATE(TIMESTAMP_SECONDS(author.date.seconds))) as author_date
+, max(cast(FORMAT_DATE('%Y-%m-01', DATE(TIMESTAMP_SECONDS(author.date.seconds))) as date)) as  commit_month
 , max(TIMESTAMP_SECONDS(author.date.seconds)) as commit_timestamp
 , max(subject) as subject
 , max(message) as message
-, max(cast(FORMAT_DATE('%Y-%m-01', DATE(TIMESTAMP_SECONDS(author.date.seconds))) as date)) as  commit_month
 , count(distinct parent) as parents
+, max(general.bq_corrective(message) > 0) as is_fix
+, max(general.bq_adaptive(message) > 0) as is_adaptive
+, max(general.bq_perfective(message) > 0) as is_perfective
+, max(general.bq_English(message) > 0) as is_English
+, max(general.bq_refactor(message) > 0) as is_refactor
+
 from
 `bigquery-public-data.github_repos.commits`
 cross join  UNNEST(repo_name) as commit_repo_name
