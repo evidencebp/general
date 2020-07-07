@@ -37,10 +37,26 @@ cnt.*
  cnt.id = f.id
  ;
 
+
 drop table if exists general.commits;
 
 create table
 general.commits
+as
+select
+c.*
+from
+`bigquery-public-data.github_repos.commits` as c
+cross join  UNNEST(repo_name) as commit_repo_name
+Join
+general.repos as r
+On commit_repo_name = r.Repo_name
+;
+
+drop table if exists general.enhanced_commits;
+
+create table
+general.enhanced_commits
 partition by
 commit_month
 cluster by
@@ -49,7 +65,7 @@ as
 select
 r.repo_name as repo_name
 , commit
-# Note - all the properties bellow make compuations more efficient but do not exist in Google's scheme
+# Note - all the properties bellow make computations more efficient but do not exist in Google's scheme
 , max(author.name) as author_name
 , max(author.email) as author_email
 , max(cast(FORMAT_DATE('%Y-%m-01', DATE(TIMESTAMP_SECONDS(author.date.seconds))) as date)) as  commit_month
@@ -64,7 +80,7 @@ r.repo_name as repo_name
 , max(general.bq_refactor(message) > 0) as is_refactor
 
 from
-`bigquery-public-data.github_repos.commits`
+general.commits
 cross join  UNNEST(repo_name) as commit_repo_name
 Join
 general.repos as r
