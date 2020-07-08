@@ -35,6 +35,8 @@ cfr.repo_name as repo_name
 , cfr.file as file
 , cfr.commit
 , ec.commit_month as  commit_month
+, ec.author_name as author_name
+, ec.author_email as author_email
 , regexp_contains(lower(cfr.file), 'test') as is_test
 , lower(reverse(substr(reverse(cfr.file), 0, strpos(reverse(cfr.file),'.')))) as extension
 , lower(reverse(substr(reverse(cfr.file), 0, strpos(reverse(cfr.file),'.')))) in
@@ -44,7 +46,7 @@ cfr.repo_name as repo_name
        '.sh', '.swift', '.tpl', '.twig')
 as code_extension
 , ec.commit_timestamp  as commit_timestamp
-, ec.is_fix as is_fix
+, ec.is_corrective as is_corrective
 , ec.is_adaptive as is_adaptive
 , ec.is_perfective as is_perfective
 , ec.is_English as is_English

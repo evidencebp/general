@@ -73,7 +73,7 @@ r.repo_name as repo_name
 , max(subject) as subject
 , max(message) as message
 , count(distinct parent) as parents
-, max(general.bq_corrective(message) > 0) as is_fix
+, max(general.bq_corrective(message) > 0) as is_corrective
 , max(general.bq_adaptive(message) > 0) as is_adaptive
 , max(general.bq_perfective(message) > 0) as is_perfective
 , max(general.bq_English(message) > 0) as is_English
