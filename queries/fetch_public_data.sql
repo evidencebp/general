@@ -78,7 +78,10 @@ r.repo_name as repo_name
 , max(general.bq_perfective(message) > 0) as is_perfective
 , max(general.bq_English(message) > 0) as is_English
 , max(general.bq_refactor(message) > 0) as is_refactor
-
+, -1 as files
+, -1 as non_test_files
+, -1 as code_files
+, -1 as code_non_test_files
 from
 general.commits
 cross join  UNNEST(repo_name) as commit_repo_name
