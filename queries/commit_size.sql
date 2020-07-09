@@ -2,10 +2,6 @@ drop table if exists general.commit_size;
 
 create table
 general.commit_size
-partition by
-commit_month
-cluster by
-repo_name, commit
 as
 Select
 repo_name
