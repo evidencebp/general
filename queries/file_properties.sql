@@ -16,16 +16,20 @@ cf.repo_name as repo_name
 , count(distinct cf.commit) as commits
 , count(distinct if(parents = 1, cf.commit, null)) as non_merge_commits
 , count(distinct case when cf.is_corrective  then cf.commit else null end) as corrective_commits
-, 1.0*count(distinct case when cf.is_corrective and parents = 1 then cf.commit else null end)/
-        count(distinct if(parents = 1, cf.commit, null)) as corrective_rate
-, 1.253*count(distinct case when cf.is_corrective  and parents = 1 then cf.commit else null end)/
-        count(distinct if(parents = 1, cf.commit, null)) -0.053 as ccp
-, avg(if(cf.is_corrective and parents = 1, null, non_test_files)) as avg_coupling_size
-, avg(if(cf.is_corrective and parents = 1, null, code_non_test_files)) as avg_coupling_code_size
-, avg(if(cf.is_corrective and parents = 1, null, if(non_test_files > 103 , 103 , non_test_files))) as avg_coupling_size_capped
-, avg(if(cf.is_corrective and parents = 1, null, if(code_non_test_files> 103 , 103 ,code_non_test_files))) as avg_coupling_code_size_capped
-, avg(if(cf.is_corrective and parents = 1, null, if(non_test_files > 103 , null , non_test_files))) as avg_coupling_size_cut
-, avg(if(cf.is_corrective and parents = 1, null, if(code_non_test_files> 103 , null ,code_non_test_files))) as avg_coupling_code_size_cut
+, if(count(distinct if(parents = 1, cf.commit, null)) > 0
+    ,1.0*count(distinct case when cf.is_corrective and parents = 1 then cf.commit else null end)/
+        count(distinct if(parents = 1, cf.commit, null))
+    , null) as corrective_rate
+, if(count(distinct if(parents = 1, cf.commit, null)) > 0
+    , 1.253*count(distinct case when cf.is_corrective  and parents = 1 then cf.commit else null end)/
+        count(distinct if(parents = 1, cf.commit, null)) -0.053
+    , null ) as ccp
+, avg(if(not cf.is_corrective and parents = 1, non_test_files, null)) as avg_coupling_size
+, avg(if(not cf.is_corrective and parents = 1, code_non_test_files, null)) as avg_coupling_code_size
+, avg(if(not cf.is_corrective and parents = 1, if(non_test_files > 103 , 103 , non_test_files), null)) as avg_coupling_size_capped
+, avg(if(not cf.is_corrective and parents = 1, if(code_non_test_files> 103 , 103 ,code_non_test_files), null)) as avg_coupling_code_size_capped
+, avg(if(not cf.is_corrective and parents = 1, if(non_test_files > 103 , null , non_test_files), null)) as avg_coupling_size_cut
+, avg(if(not cf.is_corrective and parents = 1, if(code_non_test_files> 103 , null ,code_non_test_files), null)) as avg_coupling_code_size_cut
 , count(distinct cf.Author_email) as authors
 , max(cf.Author_email) as Author_email # Meaningful only when authors=1
 , min(ec.commit_month) as commit_month
@@ -59,17 +63,21 @@ cf.repo_name as repo_name
 , count(distinct cf.commit) as commits
 , count(distinct if(parents = 1, cf.commit, null)) as non_merge_commits
 , count(distinct case when cf.is_corrective  then cf.commit else null end) as corrective_commits
-, 1.0*count(distinct case when cf.is_corrective and parents = 1 then cf.commit else null end)/
-        count(distinct if(parents = 1, cf.commit, null)) as corrective_rate
-, 1.253*count(distinct case when cf.is_corrective  and parents = 1 then cf.commit else null end)/
-        count(distinct if(parents = 1, cf.commit, null)) -0.053 as ccp
-, avg(if(cf.is_corrective and parents = 1, null, non_test_files)) as avg_coupling_size
-, avg(if(cf.is_corrective and parents = 1, null, code_non_test_files)) as avg_coupling_code_size
-, avg(if(cf.is_corrective and parents = 1, null, if(non_test_files > 103 , 103 , non_test_files))) as avg_coupling_size_capped
-, avg(if(cf.is_corrective and parents = 1, null, if(code_non_test_files> 103 , 103 ,code_non_test_files))) as avg_coupling_code_size_capped
+, if(count(distinct if(parents = 1, cf.commit, null)) > 0
+    ,1.0*count(distinct case when cf.is_corrective and parents = 1 then cf.commit else null end)/
+        count(distinct if(parents = 1, cf.commit, null))
+    , null) as corrective_rate
+, if(count(distinct if(parents = 1, cf.commit, null)) > 0
+    , 1.253*count(distinct case when cf.is_corrective  and parents = 1 then cf.commit else null end)/
+        count(distinct if(parents = 1, cf.commit, null)) -0.053
+    , null ) as ccp
+, avg(if(not cf.is_corrective and parents = 1, non_test_files, null)) as avg_coupling_size
+, avg(if(not cf.is_corrective and parents = 1, code_non_test_files, null)) as avg_coupling_code_size
+, avg(if(not cf.is_corrective and parents = 1, if(non_test_files > 103 , 103 , non_test_files), null)) as avg_coupling_size_capped
+, avg(if(not cf.is_corrective and parents = 1, if(code_non_test_files> 103 , 103 ,code_non_test_files), null)) as avg_coupling_code_size_capped
+, avg(if(not cf.is_corrective and parents = 1, if(non_test_files > 103 , null , non_test_files), null)) as avg_coupling_size_cut
+, avg(if(not cf.is_corrective and parents = 1, if(code_non_test_files> 103 , null ,code_non_test_files), null)) as avg_coupling_code_size_cut
 , count(distinct cf.Author_email) as authors
-, avg(if(cf.is_corrective and parents = 1, null, if(non_test_files > 103 , null , non_test_files))) as avg_coupling_size_cut
-, avg(if(cf.is_corrective and parents = 1, null, if(code_non_test_files> 103 , null ,code_non_test_files))) as avg_coupling_code_size_cut
 , max(cf.Author_email) as Author_email # Meaningful only when authors=1
 , min(ec.commit_month) as commit_month
 from
