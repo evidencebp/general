@@ -9,12 +9,12 @@ general.files
 as
 SELECT
 f.*
- FROM
- `bigquery-public-data.github_repos.files` as f
- join
- general.repos as r on
- f.repo_name = r.repo_name
-  ;
+FROM
+`bigquery-public-data.github_repos.files` as f
+join
+general.repos as r on
+f.repo_name = r.repo_name
+;
 
 # Copy repositories relevant files' content
 drop table if exists general.contents;
