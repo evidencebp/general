@@ -82,6 +82,11 @@ r.repo_name as repo_name
 , -1 as non_test_files
 , -1 as code_files
 , -1 as code_non_test_files
+, -1 as duration
+, commit as prev_commit
+, max(TIMESTAMP_SECONDS(author.date.seconds)) as prev_timestamp
+, False as same_date_as_prev
+
 from
 general.commits
 cross join  UNNEST(repo_name) as commit_repo_name
