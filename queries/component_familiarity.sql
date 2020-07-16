@@ -219,3 +219,48 @@ repo_name
 from
 general.component_familiarity_joint
 ;
+
+
+drop table if exists general.recent_component_familiarity_by_dev;
+
+create table
+general.recent_component_familiarity_by_dev
+as
+select
+repo_name
+, file
+, Author_email
+, count(distinct cur_files.commit) as commits
+, min(cur_files.commit_timestamp) as min_commit_timestamp
+, max(cur_files.commit_timestamp) as max_commit_timestamp
+from
+general.commits_files as cur_files
+where
+cur_files.commit_timestamp < TIMESTAMP_ADD(CURRENT_TIMESTAMP(), INTERVAL -30 DAY)
+group by
+repo_name
+, file
+, Author_email
+;
+
+drop table if exists general.recent_component_familiarity;
+
+create table
+general.recent_component_familiarity
+as
+select
+repo_name
+, file
+, count(distinct Author_email) as authors
+, max(Author_email) as Author_email # Meaningful only when authors=1
+, count(distinct cur_files.commit) as commits
+, min(cur_files.commit_timestamp) as min_commit_timestamp
+, max(cur_files.commit_timestamp) as max_commit_timestamp
+from
+general.commits_files as cur_files
+where
+cur_files.commit_timestamp < TIMESTAMP_ADD(CURRENT_TIMESTAMP(), INTERVAL -30 DAY)
+group by
+repo_name
+, file
+;
