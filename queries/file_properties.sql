@@ -33,6 +33,9 @@ cf.repo_name as repo_name
 , count(distinct cf.Author_email) as authors
 , max(cf.Author_email) as Author_email # Meaningful only when authors=1
 , min(ec.commit_month) as commit_month
+
+, avg(if(ec.same_date_as_prev and parents = 1, duration, null)) as same_day_duration_avg
+
 from
 general.commits_files as cf
 join
@@ -80,6 +83,9 @@ cf.repo_name as repo_name
 , count(distinct cf.Author_email) as authors
 , max(cf.Author_email) as Author_email # Meaningful only when authors=1
 , min(ec.commit_month) as commit_month
+
+, avg(if(ec.same_date_as_prev and parents = 1, duration, null)) as same_day_duration_avg
+
 from
 general.commits_files as cf
 join
@@ -87,22 +93,6 @@ general.enhanced_commits as ec
 on
 cf.commit = ec.commit and cf.repo_name = ec.repo_name
 group by
-repo_name
-, file
-;
-
-
-# into general_file_properties_2019.csv
-select *
-from
-general.file_properties_per_year
-where
-year = 2019
-and
-commits > 10
-and
-code_extension
-order by
 repo_name
 , file
 ;
