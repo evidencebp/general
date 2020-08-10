@@ -1,3 +1,4 @@
+# commit_size.sql
 drop table if exists general.commit_size;
 
 create table
