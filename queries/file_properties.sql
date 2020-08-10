@@ -1,3 +1,4 @@
+# file_properties.sql
 drop table if exists general.file_properties_per_year;
 
 
@@ -43,8 +44,7 @@ cf.repo_name as repo_name
 , count(distinct cf.Author_email) as authors
 , max(cf.Author_email) as Author_email # Meaningful only when authors=1
 , min(ec.commit_month) as commit_month
-
-, avg(if(ec.same_date_as_prev and parents = 1, duration, null)) as same_day_duration_avg
+, avg(if(same_date_as_prev, duration, null)) as same_day_duration_avg
 
 from
 general.commits_files as cf
@@ -103,7 +103,7 @@ cf.repo_name as repo_name
 , max(cf.Author_email) as Author_email # Meaningful only when authors=1
 , min(ec.commit_month) as commit_month
 
-, avg(if(ec.same_date_as_prev and parents = 1, duration, null)) as same_day_duration_avg
+, avg(if(same_date_as_prev, duration, null)) as same_day_duration_avg
 
 from
 general.commits_files as cf
