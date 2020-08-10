@@ -1,4 +1,4 @@
-
+# commits_with_duration.sql
 drop table if exists general.commits_prev_timestamp;
 
 create table

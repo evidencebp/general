@@ -1,4 +1,4 @@
-
+# component_familiarity.sql
 # TODO - check if year is handled well
 # TODO - Check partitioning
 

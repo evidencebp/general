@@ -1,4 +1,4 @@
-
+# commits_with_files.sql
 drop table if exists general.commits_files_raw;
 
 create table
