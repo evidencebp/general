@@ -29,7 +29,7 @@ repo_name as repo_name
 , avg(if(not is_corrective and parents = 1, if(code_non_test_files> 103 , null ,code_non_test_files), null)) as avg_coupling_code_size_cut
 , count(distinct Author_email) as authors
 , max(Author_email) as Author_email # Meaningful only when authors=1
-, avg(if(same_date_as_prev, duration, null)) as same_date_duration
+, avg(if(same_date_as_prev, duration, null)) as same_day_duration_avg
 , min(ec.commit_month) as commit_month
 from
 general.enhanced_commits as ec
@@ -68,7 +68,7 @@ repo_name as repo_name
 , avg(if(not is_corrective and parents = 1, if(code_non_test_files> 103 , null ,code_non_test_files), null)) as avg_coupling_code_size_cut
 , count(distinct Author_email) as authors
 , max(Author_email) as Author_email # Meaningful only when authors=1
-, avg(if(same_date_as_prev, duration, null)) as same_date_duration
+, avg(if(same_date_as_prev, duration, null)) as same_day_duration_avg
 , min(ec.commit_month) as commit_month
 from
 general.enhanced_commits as ec
