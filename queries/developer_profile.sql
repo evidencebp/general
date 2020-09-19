@@ -17,8 +17,10 @@ author_email
 , count(distinct commit) as commits
 , min(commit) as min_commit
 , max(commit) as max_commit
-# TODO - is repo owner
 
+, 0 as files_edited
+, 0 as files_created
+, 0 as files_owned
 #	\item Number of files edited in project
 #	\item Number of files created in project
 #    \item number of files owned in project
@@ -36,7 +38,7 @@ author_email
 #	\item Days of week activity (e.g., number of days, working days was weekend)
 #	\item Working hours (e.g., number of distinct hours).
 #	\items Commits/distinct commits variation \cite{8952390} \idan{Consider more ideas from there}
- tests presence
+# tests presence
 # message length
 # refactoring
 # CCP in owned files
@@ -107,6 +109,59 @@ set days_entropy = - (case when Sunday_prob > 0 then Sunday_prob*log(Sunday_prob
 )
 where true
 ;
+
+drop table if exists general.author_created_files;
+
+create table
+general.author_created_files
+as
+select
+creator_email
+, count(distinct file) as files
+from
+general.file_properties
+group by
+creator_email
+;
+
+update general.developer_profile as dp
+set files_created = acf.files
+from
+general.author_created_files as acf
+where
+dp.author_email = acf.creator_email
+;
+
+drop table if exists general.author_created_files;
+
+
+
+drop table if exists general.author_owned_files;
+
+create table
+general.author_owned_files
+as
+select
+Author_email
+, count(distinct concat(repo_name, file)) as files
+from
+general.file_properties
+where
+authors = 1
+group by
+Author_email
+;
+
+update general.developer_profile as dp
+set files_owned = aof.files
+from
+general.author_owned_files as aof
+where
+dp.author_email = aof.Author_email
+;
+
+drop table if exists general.author_owned_files;
+
 
 drop table if exists general.developer_per_repo_profile;
 
@@ -202,6 +257,21 @@ set days_entropy = - (case when Sunday_prob > 0 then Sunday_prob*log(Sunday_prob
 where true
 ;
 
+drop table if exists general.author_created_files_by_repo;
+
+create table
+general.author_created_files_by_repo
+as
+select
+creator_email
+, repo_name
+, count(distinct file) as files
+from
+general.file_properties
+group by
+creator_email
+, repo_name
+;
 
 drop table if exists general.developer_per_repo_profile_per_year;
 
