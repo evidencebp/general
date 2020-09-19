@@ -21,9 +21,6 @@ author_email
 , 0 as files_edited
 , 0 as files_created
 , 0 as files_owned
-#	\item Number of files edited in project
-#	\item Number of files created in project
-#    \item number of files owned in project
 
 #	\item Number of commits in project
 #	\item Percentage of self-commits to the entire project commits
@@ -208,6 +205,10 @@ repo_name
 , min(commit) as min_commit
 , max(commit) as max_commit
 
+, 0 as files_edited
+, 0 as files_created
+, 0 as files_owned
+
 # tests presence
 # message length
 # refactoring
@@ -298,6 +299,83 @@ creator_email
 , repo_name
 ;
 
+update general.developer_per_repo_profile as dp
+set files_created = acf.files
+from
+general.author_created_files_by_repo as acf
+where
+dp.author_email = acf.creator_email
+and
+dp.repo_name = acf.repo_name
+;
+
+drop table if exists general.author_created_files_by_repo;
+
+
+
+drop table if exists general.author_owned_files_by_repo;
+
+create table
+general.author_owned_files_by_repo
+as
+select
+Author_email
+, repo_name
+, count(distinct concat(repo_name, file)) as files
+from
+general.file_properties
+where
+authors = 1
+group by
+Author_email
+, repo_name
+;
+
+update general.developer_per_repo_profile as dp
+set files_owned = aof.files
+from
+general.author_owned_files_by_repo as aof
+where
+dp.author_email = aof.Author_email
+and
+dp.repo_name = aof.repo_name
+;
+
+drop table if exists general.author_owned_files_by_repo;
+
+
+
+drop table if exists general.author_edited_files_by_repo;
+
+create table
+general.author_edited_files_by_repo
+as
+select
+author_email
+, repo_name
+, count(distinct concat(repo_name, file)) as files
+from
+general.commits_files
+group by
+author_email
+, repo_name
+;
+
+
+update general.developer_per_repo_profile as dp
+set files_edited = aef.files
+from
+general.author_edited_files_by_repo as aef
+where
+dp.author_email = aef.author_email
+and
+dp.repo_name = aef.repo_name
+;
+
+drop table if exists general.author_edited_files_by_repo;
+
+
+
 drop table if exists general.developer_per_repo_profile_per_year;
 
 create table
@@ -318,6 +396,10 @@ repo_name
 , count(distinct commit) as commits
 , min(commit) as min_commit
 , max(commit) as max_commit
+
+, 0 as files_edited
+, 0 as files_created
+, 0 as files_owned
 
 # tests presence
 # message length
@@ -393,3 +475,107 @@ set days_entropy = - (case when Sunday_prob > 0 then Sunday_prob*log(Sunday_prob
 )
 where true
 ;
+
+
+drop table if exists general.author_created_files_by_repo_by_year;
+
+create table
+general.author_created_files_by_repo_by_year
+as
+select
+creator_email
+, repo_name
+, extract(year from min_commit_time) as year
+, count(distinct file) as files
+from
+general.file_properties
+group by
+creator_email
+, repo_name
+, year
+;
+
+update general.developer_per_repo_profile_per_year as dp
+set files_created = acf.files
+from
+general.author_created_files_by_repo_by_year as acf
+where
+dp.author_email = acf.creator_email
+and
+dp.repo_name = acf.repo_name
+and
+dp.year = acf.year
+;
+
+drop table if exists general.author_created_files_by_repo_by_year;
+
+
+drop table if exists general.author_owned_files_by_repo_by_year;
+
+create table
+general.author_owned_files_by_repo_by_year
+as
+select
+Author_email
+, repo_name
+, extract(year from min_commit_time) as year
+, count(distinct concat(repo_name, file)) as files
+from
+general.file_properties
+where
+authors = 1
+group by
+Author_email
+, repo_name
+, year
+;
+
+update general.developer_per_repo_profile_per_year as dp
+set files_owned = aof.files
+from
+general.author_owned_files_by_repo_by_year as aof
+where
+dp.author_email = aof.Author_email
+and
+dp.repo_name = aof.repo_name
+and
+dp.year = aof.year
+;
+
+drop table if exists general.author_owned_files_by_repo_by_year;
+
+
+drop table if exists general.author_edited_files_by_year;
+
+create table
+general.author_edited_files_by_year
+as
+select
+author_email
+, repo_name
+, extract(year from commit_timestamp) as year
+, count(distinct concat(repo_name, file)) as files
+from
+general.commits_files
+group by
+author_email
+, repo_name
+, year
+;
+
+
+update general.developer_per_repo_profile_per_year as dp
+set files_edited = aef.files
+from
+general.author_edited_files_by_year as aef
+where
+dp.author_email = aef.author_email
+and
+dp.repo_name = aef.repo_name
+and
+dp.year = aef.year
+;
+
+drop table if exists general.author_edited_files_by_year;
+
+
