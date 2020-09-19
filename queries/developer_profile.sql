@@ -9,15 +9,34 @@ author_email
 , max(author_name) as author_name
 , count( distinct author_name) as names # For safety, see if the email has some names
 , substr(author_email, STRPOS(author_email ,'@') + 1) as  author_email_domain
-
+, count(distinct repo_name) as repositories
+, count(distinct if(substr(repo_name, 0, STRPOS(repo_name ,'/') -1) = author_name, repo_name, null)) as owned_repositories
 , min(ec.commit_timestamp) as min_commit_timestamp
 , max(ec.commit_timestamp) as max_commit_timestamp
 
 , count(distinct commit) as commits
 , min(commit) as min_commit
 , max(commit) as max_commit
+# TODO - is repo owner
 
-# tests presence
+#	\item Number of files edited in project
+#	\item Number of files created in project
+#    \item number of files owned in project
+
+#	\item Number of commits in project
+#	\item Percentage of self-commits to the entire project commits
+#	\item Avg. CCP of files edited in project
+#	\item Avg. CCP of files created in project
+#	\item Number of adaptive commits
+#	\item Corrective commits
+#	\item Refactor commits
+#	\item Percent of effective refactors
+#	\item Use of tests (in general, in corrective commits, in adaptive commits)
+#	\item Commit message linguistic characteristic (e.g., message length)
+#	\item Days of week activity (e.g., number of days, working days was weekend)
+#	\item Working hours (e.g., number of distinct hours).
+#	\items Commits/distinct commits variation \cite{8952390} \idan{Consider more ideas from there}
+ tests presence
 # message length
 # refactoring
 # CCP in owned files
@@ -100,6 +119,7 @@ repo_name
 , max(author_name) as author_name
 , count( distinct author_name) as names # For safety, see if the email has some names
 , substr(author_email, STRPOS(author_email ,'@') + 1) as  author_email_domain
+, max(if(substr(repo_name, 0, STRPOS(repo_name ,'/') -1) = author_name, 1, 0)) as owned_repository
 
 , min(ec.commit_timestamp) as min_commit_timestamp
 , max(ec.commit_timestamp) as max_commit_timestamp
@@ -183,7 +203,7 @@ where true
 ;
 
 
-drop table if exists general.developer_per_repo_profile;
+drop table if exists general.developer_per_repo_profile_per_year;
 
 create table
 general.developer_per_repo_profile_per_year
@@ -195,6 +215,7 @@ repo_name
 , max(author_name) as author_name
 , count( distinct author_name) as names # For safety, see if the email has some names
 , substr(author_email, STRPOS(author_email ,'@') + 1) as  author_email_domain
+, max(if(substr(repo_name, 0, STRPOS(repo_name ,'/') -1) = author_name, 1, 0)) as owned_repository
 
 , min(ec.commit_timestamp) as min_commit_timestamp
 , max(ec.commit_timestamp) as max_commit_timestamp
