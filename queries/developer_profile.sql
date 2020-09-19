@@ -163,6 +163,31 @@ dp.author_email = aof.Author_email
 drop table if exists general.author_owned_files;
 
 
+
+drop table if exists general.author_edited_files;
+
+create table
+general.author_edited_files
+as
+select
+author_email
+, count(distinct concat(repo_name, file)) as files
+from
+general.commits_files
+group by
+author_email
+;
+
+
+update general.developer_profile as dp
+set files_edited = aef.files
+from
+general.author_edited_files as aef
+where
+dp.author_email = aef.author_email
+;
+drop table if exists general.author_edited_files;
+
 drop table if exists general.developer_per_repo_profile;
 
 create table
