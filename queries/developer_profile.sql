@@ -27,10 +27,6 @@ author_email
 , 0.0 as files_created_ccp
 , 0.0 as files_owned_ccp
 
-#	\item Avg. CCP of files edited in project
-#	\item Avg. CCP of files created in project
-#	\item Avg. CCP of files owned in project
-
 #	\item Number of adaptive commits
 #	\item Corrective commits
 #	\item Refactor commits
@@ -426,6 +422,10 @@ repo_name
 , 0 as files_created
 , 0 as files_owned
 
+, 0.0 as files_edited_ccp
+, 0.0 as files_created_ccp
+, 0.0 as files_owned_ccp
+
 # tests presence
 # message length
 # refactoring
@@ -512,6 +512,7 @@ creator_email
 , repo_name
 , extract(year from min_commit_time) as year
 , count(distinct file) as files
+, 1.253*sum(corrective_commits)/sum(commits) -0.053 as ccp
 from
 general.file_properties
 group by
@@ -521,7 +522,7 @@ creator_email
 ;
 
 update general.developer_per_repo_profile_per_year as dp
-set files_created = acf.files
+set files_created = acf.files, files_created_ccp = acf.ccp
 from
 general.author_created_files_by_repo_by_year as acf
 where
@@ -545,6 +546,7 @@ Author_email
 , repo_name
 , extract(year from min_commit_time) as year
 , count(distinct concat(repo_name, file)) as files
+, 1.253*sum(corrective_commits)/sum(commits) -0.053 as ccp
 from
 general.file_properties
 where
@@ -556,7 +558,7 @@ Author_email
 ;
 
 update general.developer_per_repo_profile_per_year as dp
-set files_owned = aof.files
+set files_owned = aof.files, files_owned_ccp = aof.ccp
 from
 general.author_owned_files_by_repo_by_year as aof
 where
@@ -580,6 +582,7 @@ author_email
 , repo_name
 , extract(year from commit_timestamp) as year
 , count(distinct concat(repo_name, file)) as files
+, 1.253*sum(if(is_corrective, 1,0))/count(*) -0.053 as ccp
 from
 general.commits_files
 group by
@@ -590,7 +593,7 @@ author_email
 
 
 update general.developer_per_repo_profile_per_year as dp
-set files_edited = aef.files
+set files_edited = aef.files, files_edited_ccp = aef.ccp
 from
 general.author_edited_files_by_year as aef
 where
