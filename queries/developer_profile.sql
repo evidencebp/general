@@ -27,13 +27,11 @@ author_email
 , 0.0 as files_created_ccp
 , 0.0 as files_owned_ccp
 
-#	\item Number of adaptive commits
-#	\item Corrective commits
-#	\item Refactor commits
+, 1.253*count(distinct case when is_corrective  then commit else null end)/count(distinct commit) -0.053 as ccp
+, 1.695*count(distinct case when is_refactor  then commit else null end)/count(distinct commit) -0.034 as refactor_mle
 
+, 0.0 as tests_presence
 #	\item Percent of effective refactors
-
-#	\item Use of tests (in general, in corrective commits, in adaptive commits)
 
 #	\item Commit message linguistic characteristic (e.g., message length)
 
@@ -45,14 +43,14 @@ author_email
 # tests presence
 # message length
 # refactoring
-# CCP in owned files
-# CCP
 # Duration
 , avg(case when same_date_as_prev then duration else null end) as same_date_duration_avg
 , count(distinct case when same_date_as_prev then commit else null end) as same_date_commits
 
 , TIMESTAMP_DIFF(max(ec.commit_timestamp), min(ec.commit_timestamp), day) as commit_period
-, count(distinct ec.commit_timestamp) as commit_days
+, count(distinct date(ec.commit_timestamp)) as commit_days
+, 1.0*count(distinct commit)/count(distinct date(ec.commit_timestamp)) as commits_per_day
+
 , count(distinct extract(week from date(ec.commit_timestamp))) as commit_weeks
 , count(distinct extract(month from date(ec.commit_timestamp))) as commit_months
 , count(distinct extract(dayofweek from date(ec.commit_timestamp))) as commit_days_of_week
@@ -178,7 +176,8 @@ as
 select
 author_email
 , count(distinct concat(repo_name, file)) as files
-, 1.253*sum(if(is_corrective, 1,0))/count(*) -0.053 as ccp
+, 1.253*count(distinct if(is_corrective, commit, null))/count(distinct commit) -0.053 as ccp
+, sum(if(is_test, 1,0))/count(*)  as tests_presence
 from
 general.commits_files
 group by
@@ -187,7 +186,7 @@ author_email
 
 
 update general.developer_profile as dp
-set files_edited = aef.files, files_edited_ccp = aef.ccp
+set files_edited = aef.files, files_edited_ccp = aef.ccp, tests_presence = aef.tests_presence
 from
 general.author_edited_files as aef
 where
@@ -226,11 +225,13 @@ repo_name
 , 0.0 as files_created_ccp
 , 0.0 as files_owned_ccp
 
-# tests presence
+, 1.253*count(distinct case when is_corrective  then commit else null end)/count(distinct commit) -0.053 as ccp
+, 1.695*count(distinct case when is_refactor  then commit else null end)/count(distinct commit) -0.034 as refactor_mle
+
+, 0.0 as tests_presence
+
 # message length
 # refactoring
-# CCP in owned files
-# CCP
 # Duration
 , avg(case when same_date_as_prev then duration else null end) as same_date_duration_avg
 , count(distinct case when same_date_as_prev then commit else null end) as same_date_commits
@@ -373,7 +374,8 @@ select
 author_email
 , repo_name
 , count(distinct concat(repo_name, file)) as files
-, 1.253*sum(if(is_corrective, 1,0))/count(*) -0.053 as ccp
+, 1.253*count(distinct if(is_corrective, commit, null))/count(distinct commit) -0.053 as ccp
+, sum(if(is_test, 1,0))/count(*)  as tests_presence
 from
 general.commits_files
 group by
@@ -426,7 +428,11 @@ repo_name
 , 0.0 as files_created_ccp
 , 0.0 as files_owned_ccp
 
-# tests presence
+, 1.253*count(distinct case when is_corrective  then commit else null end)/count(distinct commit) -0.053 as ccp
+, 1.695*count(distinct case when is_refactor  then commit else null end)/count(distinct commit) -0.034 as refactor_mle
+
+, 0.0 as tests_presence
+
 # message length
 # refactoring
 # CCP in owned files
@@ -582,7 +588,7 @@ author_email
 , repo_name
 , extract(year from commit_timestamp) as year
 , count(distinct concat(repo_name, file)) as files
-, 1.253*sum(if(is_corrective, 1,0))/count(*) -0.053 as ccp
+, 1.253*count(distinct if(is_corrective, commit, null))/count(distinct commit) -0.053 as ccp
 from
 general.commits_files
 group by
@@ -593,7 +599,7 @@ author_email
 
 
 update general.developer_per_repo_profile_per_year as dp
-set files_edited = aef.files, files_edited_ccp = aef.ccp
+set files_edited = aef.files, files_edited_ccp = aef.ccp , tests_presence = aef.tests_presence
 from
 general.author_edited_files_by_year as aef
 where
