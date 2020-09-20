@@ -39,11 +39,10 @@ as single_line_message_ratio
 , avg(length(message)) as message_length_avg
 
 #	\items Commits/distinct commits variation \cite{8952390} \idan{Consider more ideas from there}
+# Developer Reputation Estimator (DRE)
 , 1.0*count(*)/count(distinct commit) as duplicated_commits_ratio
 
-#	\item Percentage of self-commits to the entire project commits
 
-# refactoring
 # Duration
 , avg(case when same_date_as_prev then duration else null end) as same_date_duration_avg
 , count(distinct case when same_date_as_prev then commit else null end) as same_date_commits
@@ -80,19 +79,7 @@ as single_line_message_ratio
 
 # Duration in project
 # Join time relative to project creation
-# Number of commits in project
-# Percentage of self-commits to the entire project commits
-# Number of files edited in project
-# Number of files created in project
-# Avg. CCP of files created in project
-# Number of contributed repositories of the developer
 # Percent of effective refactors
-# Use of tests (in general, in corrective commits, in adaptive commits)
-# Commit message linguistic characteristic (e.g., message length)
-# Days of week activity (e.g., number of days, working days was weekend)
-# Working hours (e.g., number of distinct hours).
-# Commits/distinct commits variation
-# Developer Reputation Estimator (DRE)
 from
 general.enhanced_commits as ec
 #where
