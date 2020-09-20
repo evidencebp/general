@@ -33,15 +33,16 @@ author_email
 , 0.0 as tests_presence
 #	\item Percent of effective refactors
 
-#	\item Commit message linguistic characteristic (e.g., message length)
+# Commit message linguistic characteristic (e.g., message length)
+, 1.0*count(distinct if(not REGEXP_CONTAINS(message,'\\n'), commit, null))/ count(distinct commit)
+as single_line_message_ratio
+, avg(length(message)) as message_length_avg
 
 #	\items Commits/distinct commits variation \cite{8952390} \idan{Consider more ideas from there}
-
+, 1.0*count(*)/count(distinct commit) as duplicated_commits_ratio
 
 #	\item Percentage of self-commits to the entire project commits
 
-# tests presence
-# message length
 # refactoring
 # Duration
 , avg(case when same_date_as_prev then duration else null end) as same_date_duration_avg
@@ -230,7 +231,16 @@ repo_name
 
 , 0.0 as tests_presence
 
-# message length
+# Commit message linguistic characteristic (e.g., message length)
+, 1.0*count(distinct if(not REGEXP_CONTAINS(message,'\\n'), commit, null))/ count(distinct commit)
+as single_line_message_ratio
+, avg(length(message)) as message_length_avg
+
+#	\items Commits/distinct commits variation \cite{8952390} \idan{Consider more ideas from there}
+, 1.0*count(*)/count(distinct commit) as duplicated_commits_ratio
+
+#	\item Percentage of self-commits to the entire project commits
+
 # refactoring
 # Duration
 , avg(case when same_date_as_prev then duration else null end) as same_date_duration_avg
@@ -433,10 +443,18 @@ repo_name
 
 , 0.0 as tests_presence
 
-# message length
+# Commit message linguistic characteristic (e.g., message length)
+, 1.0*count(distinct if(not REGEXP_CONTAINS(message,'\\n'), commit, null))/ count(distinct commit)
+as single_line_message_ratio
+, avg(length(message)) as message_length_avg
+
+#	\items Commits/distinct commits variation \cite{8952390} \idan{Consider more ideas from there}
+, 1.0*count(*)/count(distinct commit) as duplicated_commits_ratio
+
+#	\item Percentage of self-commits to the entire project commits
+
 # refactoring
-# CCP in owned files
-# CCP
+
 # Duration
 , avg(case when same_date_as_prev then duration else null end) as same_date_duration_avg
 , count(distinct case when same_date_as_prev then commit else null end) as same_date_commits
@@ -589,6 +607,7 @@ author_email
 , extract(year from commit_timestamp) as year
 , count(distinct concat(repo_name, file)) as files
 , 1.253*count(distinct if(is_corrective, commit, null))/count(distinct commit) -0.053 as ccp
+, sum(if(is_test, 1,0))/count(*)  as tests_presence
 from
 general.commits_files
 group by
