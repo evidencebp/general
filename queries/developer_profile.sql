@@ -240,6 +240,7 @@ as single_line_message_ratio
 , 1.0*count(*)/count(distinct commit) as duplicated_commits_ratio
 
 #	\item Percentage of self-commits to the entire project commits
+, 0.0 as self_from_all_ratio
 
 # refactoring
 # Duration
@@ -407,6 +408,14 @@ dp.repo_name = aef.repo_name
 drop table if exists general.author_edited_files_by_repo;
 
 
+update general.developer_per_repo_profile as dp
+set self_from_all_ratio = 1.0*dp.commits
+from
+general.repo_properties as r
+where
+dp.repo_name = r.repo_name
+;
+
 ##### Creating developer_per_repo_profile_per_year
 
 drop table if exists general.developer_per_repo_profile_per_year;
@@ -452,6 +461,7 @@ as single_line_message_ratio
 , 1.0*count(*)/count(distinct commit) as duplicated_commits_ratio
 
 #	\item Percentage of self-commits to the entire project commits
+, 0.0 as self_from_all_ratio
 
 # refactoring
 
@@ -631,4 +641,12 @@ dp.year = aef.year
 
 drop table if exists general.author_edited_files_by_year;
 
-
+update general.developer_per_repo_profile_per_year as dp
+set self_from_all_ratio = 1.0*dp.commits
+from
+general.repo_properties_per_year as r
+where
+dp.repo_name = r.repo_name
+and
+dp.year = r.year
+;
