@@ -1,3 +1,4 @@
+##### Creating developer_profile
 
 drop table if exists general.developer_profile;
 
@@ -22,19 +23,29 @@ author_email
 , 0 as files_created
 , 0 as files_owned
 
-#	\item Number of commits in project
-#	\item Percentage of self-commits to the entire project commits
+, 0.0 as files_edited_ccp
+, 0.0 as files_created_ccp
+, 0.0 as files_owned_ccp
+
 #	\item Avg. CCP of files edited in project
 #	\item Avg. CCP of files created in project
+#	\item Avg. CCP of files owned in project
+
 #	\item Number of adaptive commits
 #	\item Corrective commits
 #	\item Refactor commits
+
 #	\item Percent of effective refactors
+
 #	\item Use of tests (in general, in corrective commits, in adaptive commits)
+
 #	\item Commit message linguistic characteristic (e.g., message length)
-#	\item Days of week activity (e.g., number of days, working days was weekend)
-#	\item Working hours (e.g., number of distinct hours).
+
 #	\items Commits/distinct commits variation \cite{8952390} \idan{Consider more ideas from there}
+
+
+#	\item Percentage of self-commits to the entire project commits
+
 # tests presence
 # message length
 # refactoring
@@ -115,6 +126,7 @@ as
 select
 creator_email
 , count(distinct file) as files
+, 1.253*sum(corrective_commits)/sum(commits) -0.053 as ccp
 from
 general.file_properties
 group by
@@ -122,7 +134,7 @@ creator_email
 ;
 
 update general.developer_profile as dp
-set files_created = acf.files
+set files_created = acf.files, files_created_ccp = acf.ccp
 from
 general.author_created_files as acf
 where
@@ -141,6 +153,7 @@ as
 select
 Author_email
 , count(distinct concat(repo_name, file)) as files
+, 1.253*sum(corrective_commits)/sum(commits) -0.053 as ccp
 from
 general.file_properties
 where
@@ -150,7 +163,7 @@ Author_email
 ;
 
 update general.developer_profile as dp
-set files_owned = aof.files
+set files_owned = aof.files, files_created_ccp = aof.ccp
 from
 general.author_owned_files as aof
 where
@@ -169,6 +182,7 @@ as
 select
 author_email
 , count(distinct concat(repo_name, file)) as files
+, 1.253*sum(if(is_corrective, 1,0))/count(*) -0.053 as ccp
 from
 general.commits_files
 group by
@@ -177,7 +191,7 @@ author_email
 
 
 update general.developer_profile as dp
-set files_edited = aef.files
+set files_edited = aef.files, files_created_ccp = aef.ccp
 from
 general.author_edited_files as aef
 where
@@ -186,6 +200,9 @@ dp.author_email = aef.author_email
 drop table if exists general.author_edited_files;
 
 drop table if exists general.developer_per_repo_profile;
+
+
+##### Creating developer_per_repo_profile
 
 create table
 general.developer_per_repo_profile
@@ -375,6 +392,7 @@ dp.repo_name = aef.repo_name
 drop table if exists general.author_edited_files_by_repo;
 
 
+##### Creating developer_per_repo_profile_per_year
 
 drop table if exists general.developer_per_repo_profile_per_year;
 
