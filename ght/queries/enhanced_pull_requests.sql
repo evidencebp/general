@@ -119,8 +119,6 @@ praa.pull_request_id = pra.pull_request_id
 drop table if exists general_ght.pull_request_merger;
 
 
-#drop table if exists general_ght.pull_request_actions_agg;
-
 drop table if exists general_ght.pull_request_comments_agg;
 
 create table
@@ -195,4 +193,29 @@ left join
 general_ght.pull_request_commits_agg as pr_commits
 on
 pr.id = pr_commits.pull_request_id
+;
+
+drop table if exists general_ght.pull_request_actions_agg;
+drop table if exists general_ght.pull_request_comments_agg;
+drop table if exists general_ght.pull_request_commits_agg;
+
+
+drop table if exists general_ght.pull_request_commit_files;
+
+create table
+general_ght.pull_request_commit_files
+as
+select
+prc.*
+, cf.*
+from
+general_ght.pull_request_commits as prc
+join
+general_ght.commits as gc
+on
+prc.commit_id = gc.id
+join
+general.commits_files as cf
+on
+gc.sha = cf.commit
 ;
