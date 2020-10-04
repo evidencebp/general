@@ -235,6 +235,9 @@ as single_line_message_ratio
 , count(distinct case when same_date_as_prev then commit else null end) as same_date_commits
 
 , TIMESTAMP_DIFF(max(ec.commit_timestamp), min(ec.commit_timestamp), day) as commit_period
+, count(distinct date(ec.commit_timestamp)) as commit_days
+, 1.0*count(distinct commit)/count(distinct date(ec.commit_timestamp)) as commits_per_day
+
 , count(distinct ec.commit_timestamp) as commit_days
 , count(distinct extract(week from date(ec.commit_timestamp))) as commit_weeks
 , count(distinct extract(month from date(ec.commit_timestamp))) as commit_months
@@ -457,6 +460,9 @@ as single_line_message_ratio
 , count(distinct case when same_date_as_prev then commit else null end) as same_date_commits
 
 , TIMESTAMP_DIFF(max(ec.commit_timestamp), min(ec.commit_timestamp), day) as commit_period
+, count(distinct date(ec.commit_timestamp)) as commit_days
+, 1.0*count(distinct commit)/count(distinct date(ec.commit_timestamp)) as commits_per_day
+
 , count(distinct ec.commit_timestamp) as commit_days
 , count(distinct extract(week from date(ec.commit_timestamp))) as commit_weeks
 , count(distinct extract(month from date(ec.commit_timestamp))) as commit_months
