@@ -196,3 +196,36 @@ join
 on
 i.id = ie.issue_id
 ;
+
+
+drop table if exists general_ght.repo_labels;
+
+create table
+general_ght.repo_labels
+AS
+select
+ pr.*
+from
+general_ght.projects as p
+join
+`ghtorrent-bq.ght.repo_labels` as pr
+on
+p.id = pr.repo_id
+;
+
+
+
+drop table if exists general_ght.issue_labels;
+
+create table
+general_ght.issue_labels
+AS
+select
+ pr.*
+from
+general_ght.projects as p
+join
+`ghtorrent-bq.ght.issue_labels` as pr
+on
+p.id = pr.repo_id
+;
