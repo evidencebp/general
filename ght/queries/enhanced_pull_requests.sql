@@ -146,6 +146,8 @@ prc.pull_request_id as pull_request_id
 , count(distinct author_id ) as authors_num
 , STRING_AGG(cast(author_id as string)) as authors
 , min(author_id) as min_author # Make sense only if there is one author
+, min(c.created_at) as first_commit_timestamp
+, max(c.created_at) as last_commit_timestamp
 from
 general_ght.pull_request_commits as prc
 join
@@ -156,7 +158,7 @@ group by
 prc.pull_request_id
 ;
 
-drop table if exists general_ght.enhanced_pull_request;
+drop table if exists general_ght.enhanced_pull_requests;
 
 create table
 general_ght.enhanced_pull_requests
@@ -179,6 +181,12 @@ pr.*
 , pr_commits.authors_num
 , pr_commits.authors
 , pr_commits.min_author # Make sense only if there is one author
+, pr_commits.first_commit_timestamp
+, pr_commits.last_commit_timestamp
+, TIMESTAMP_DIFF(pr_commits.last_commit_timestamp, pr_commits.first_commit_timestamp, MINUTE)
+        as first_to_last_commit_minutes
+, TIMESTAMP_DIFF(praa.merged_at, praa.opened_at, MINUTE)
+        as open_to_merge_minutes
 from
 general_ght.pull_requests as pr
 left join
