@@ -1,10 +1,11 @@
-drop table if exists general_ght.pull_request_time_to_first_bug;
+drop table if exists general_ght.bug_after_pr;
 
 create table
-general_ght.pull_request_time_to_first_bug
+general_ght.bug_after_pr
 as
 select
 epr.id as pull_request_id
+, cf.commit
 , min(cf.commit_timestamp) as commit_timestamp
 , min(TIMESTAMP_DIFF(cf.commit_timestamp, epr.merged_at, DAY)) as days_to_first_bug
 from
@@ -19,12 +20,48 @@ on
 prcf.repo_name = cf.repo_name
 and
 prcf.file = cf.file
+join
+general.enhanced_commits as ec
+on
+cf.commit = ec.commit
 where
 cf.commit_timestamp > epr.merged_at
 and
 cf.is_corrective
 group by
 epr.id
+, cf.commit
+;
+
+
+
+
+drop table if exists general_ght.pull_request_time_to_first_bug;
+
+create table
+general_ght.pull_request_time_to_first_bug
+as
+select
+baf.pull_request_id as pull_request_id
+, min(baf.commit_timestamp) as commit_timestamp
+, min(baf.days_to_first_bug) as days_to_first_bug
+, min(baf.commit) as bug_commit
+from
+general_ght.bug_after_pr as baf
+join
+(select
+pull_request_id
+, min(commit_timestamp) as commit_timestamp
+from
+general_ght.bug_after_pr
+group by
+pull_request_id) as minTime
+on
+baf.pull_request_id = minTime.pull_request_id
+and
+baf.commit_timestamp = minTime.commit_timestamp
+group by
+baf.pull_request_id
 ;
 
 drop view if exists general_ght.pull_request_rejection;
