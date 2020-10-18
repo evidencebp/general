@@ -180,7 +180,7 @@ pr.*
 , pr_commits.commits
 , pr_commits.authors_num
 , pr_commits.authors
-, pr_commits.min_author # Make sense only if there is one author
+, pr_commits.min_author as author # Make sense only if there is one author
 , pr_commits.first_commit_timestamp
 , pr_commits.last_commit_timestamp
 , TIMESTAMP_DIFF(pr_commits.last_commit_timestamp, pr_commits.first_commit_timestamp, MINUTE)
