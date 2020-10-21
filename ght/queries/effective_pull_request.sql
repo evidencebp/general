@@ -145,10 +145,11 @@ epr.id
 
 
 
-drop table if exists general_ght.pull_request_context_180d_improvement;
+
+drop table if exists general_ght.pull_request_file_context_180d_improvement;
 
 create table
-general_ght.pull_request_context_180d_improvement
+general_ght.pull_request_file_context_180d_improvement
 as
 select
 *
@@ -163,6 +164,29 @@ select
 
 from
 general_ght.pull_request_context_180d
+;
+
+
+drop table if exists general_ght.effective_pull_request_180d;
+
+create table
+general_ght.effective_pull_request_180d
+as
+select
+id
+, count(distinct file) as files
+, count(if(ccp_improved and same_date_duration_improved and commits_before > 10 and commits_after > 10 , file, null)) as improved
+, count(if(not ccp_improved or not same_date_duration_improved, file, null)) as degragated
+from
+general_ght.pull_request_file_context_180d_improvement
+group by
+id
+having
+count(distinct file) <= 10
+and
+count(if(not ccp_improved or not same_date_duration_improved, file, null)) = 0
+and
+count(if(ccp_improved and same_date_duration_improved and commits_before > 10 and commits_after > 10 , file, null)) > 0.5*count(distinct file)
 ;
 
 select
