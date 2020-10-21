@@ -187,6 +187,8 @@ pr.*
         as first_to_last_commit_minutes
 , TIMESTAMP_DIFF(praa.merged_at, praa.opened_at, MINUTE)
         as open_to_merge_minutes
+, TIMESTAMP_DIFF(praa.merged_at, pr_commits.first_commit_timestamp, MINUTE)
+        as first_commit_to_merge_minutes
 from
 general_ght.pull_requests as pr
 left join
