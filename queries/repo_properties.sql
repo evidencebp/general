@@ -35,18 +35,11 @@ repo_name as repo_name
 , max(Author_email) as Author_email # Meaningful only when authors=1
 , avg(if(same_date_as_prev, duration, null)) as same_day_duration_avg
 , min(ec.commit_month) as commit_month
-
-
-############
-
 , 0 as files_edited
 
 , 0 as files_created
 , 0.0 as files_created_ccp
 , 0.0 as tests_presence
-
-############
-
 # Commit message linguistic characteristic (e.g., message length)
 , 1.0*count(distinct if(REGEXP_CONTAINS(message,'\\n'), commit, null))/ count(distinct commit)
 as multiline_message_ratio
@@ -179,18 +172,5 @@ repo_name as repo_name
 from
 general.enhanced_commits as ec
 group by
-repo_name
-;
-
-
-# into general_repo_properties_2019.csv
-select *
-from
-general.repo_properties_per_year
-where
-year = 2019
-and
-commits > 10
-order by
 repo_name
 ;
