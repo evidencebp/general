@@ -40,9 +40,9 @@ repo_name as repo_name
 ############
 
 , 0 as files_edited
-, 0 as files_created
-, 0 as files_owned
 
+, 0 as files_created
+, 0.0 as files_created_ccp
 , 0.0 as tests_presence
 
 ############
@@ -77,6 +77,72 @@ group by
 repo_name
 , year
 ;
+
+
+
+drop table if exists general.created_files_by_repo_by_year;
+
+create table
+general.created_files_by_repo_by_year
+as
+select
+repo_name
+, extract(year from min_commit_time) as year
+, count(distinct file) as files
+, 1.253*sum(corrective_commits)/sum(commits) -0.053 as ccp
+from
+general.file_properties
+group by
+repo_name
+, year
+;
+
+update general.repo_properties_per_year as dp
+set files_created = acf.files, files_created_ccp = acf.ccp
+from
+general.created_files_by_repo_by_year as acf
+where
+dp.repo_name = acf.repo_name
+and
+dp.year = acf.year
+;
+
+drop table if exists general.created_files_by_repo_by_year;
+
+
+
+drop table if exists general.edited_files_by_year;
+
+create table
+general.edited_files_by_year
+as
+select
+ repo_name
+, extract(year from commit_timestamp) as year
+, count(distinct concat(repo_name, file)) as files
+, 1.253*count(distinct if(is_corrective, commit, null))/count(distinct commit) -0.053 as ccp
+, sum(if(is_test, 1,0))/count(*)  as tests_presence
+from
+general.commits_files
+group by
+repo_name
+, year
+;
+
+
+update general.repo_properties_per_year as dp
+set files_edited = aef.files, tests_presence = round(aef.tests_presence, 2)
+from
+general.edited_files_by_year as aef
+where
+dp.repo_name = aef.repo_name
+and
+dp.year = aef.year
+;
+
+drop table if exists general.edited_files_by_year;
+
+
 
 drop table if exists general.repo_properties;
 
