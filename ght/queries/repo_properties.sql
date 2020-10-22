@@ -181,8 +181,7 @@ create table
 general_ght.repo_properties_per_year
 as
 select
-p.name as repo_name
-, ifnull(ip.year, prp.year) as year
+rpy.*
 , ip.issues
 , ip.assigned_issues
 , ip.assigned_issues_ratio
@@ -210,11 +209,7 @@ p.name as repo_name
 , prp.open_to_merge_minutes
 , prp.first_commit_to_merge_minutes
 from
-general_ght.projects as p
-join
 general.repo_properties_per_year as rpy
-on
-p.name = rpy.repo_name
 left join
 general_ght.repo_issues_profile_per_year as ip
 on
