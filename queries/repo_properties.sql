@@ -176,10 +176,10 @@ repo_name as repo_name
 , max(Author_email) as Author_email # Meaningful only when authors=1
 , avg(if(same_date_as_prev, duration, null)) as same_day_duration_avg
 
-, 0 as files_edited
+, 0 as files_edited # edited/created are similar in the repo level
 
 , 0 as files_created
-, 0.0 as files_created_ccp
+, 0.0 as files_created_ccp # The is the ccp, when working in the repo level
 , 0.0 as tests_presence
 
 # Commit message linguistic characteristic (e.g., message length)
@@ -211,3 +211,33 @@ general.enhanced_commits as ec
 group by
 repo_name
 ;
+
+
+drop table if exists general.edited_files;
+
+create table
+general.edited_files
+as
+select
+ repo_name
+, count(distinct concat(repo_name, file)) as files
+, 1.253*count(distinct if(is_corrective, commit, null))/count(distinct commit) -0.053 as ccp
+, sum(if(is_test, 1,0))/count(*)  as tests_presence
+from
+general.commits_files
+group by
+repo_name
+;
+
+
+update general.repo_properties as dp
+set files_edited = aef.files
+, files_created = aef.files
+, tests_presence = round(aef.tests_presence, 2)
+from
+general.edited_files as aef
+where
+dp.repo_name = aef.repo_name
+;
+
+drop table if exists general.edited_files;
