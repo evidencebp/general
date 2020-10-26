@@ -174,15 +174,21 @@ pr.*
 , praa.merged_at
 , praa.merged_num
 , praa.merged_by
+
+, if(praa.opened_at is null, null, if(praa.merged_at is null, 1, 0)) as is_rejected
+
 , prca.commenters_num
 , prca.commenters
 , prca.comments_num
+
+
 , pr_commits.commits
 , pr_commits.authors_num
 , pr_commits.authors
 , pr_commits.min_author as author # Make sense only if there is one author
 , pr_commits.first_commit_timestamp
 , pr_commits.last_commit_timestamp
+
 , TIMESTAMP_DIFF(pr_commits.last_commit_timestamp, pr_commits.first_commit_timestamp, MINUTE)
         as first_to_last_commit_minutes
 , TIMESTAMP_DIFF(praa.merged_at, praa.opened_at, MINUTE)
