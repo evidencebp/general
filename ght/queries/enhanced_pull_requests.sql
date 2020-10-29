@@ -195,6 +195,7 @@ pr.*
         as open_to_merge_minutes
 , TIMESTAMP_DIFF(praa.merged_at, pr_commits.first_commit_timestamp, MINUTE)
         as first_commit_to_merge_minutes
+, -1 as days_to_first_bug
 from
 general_ght.pull_requests as pr
 left join

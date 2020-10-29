@@ -189,10 +189,19 @@ and
 count(if(ccp_improved and same_date_duration_improved and commits_before > 10 and commits_after > 10 , file, null)) > 0.5*count(distinct file)
 ;
 
-select
-count(*)
-, avg(if(ccp_improved,1,0)) as ccp_improved_prob
-, avg(if(same_date_duration_improved,1,0)) as same_date_duration_improved_prob
-, avg(if(avg_coupling_size_capped_improved,1,0)) as avg_coupling_size_capped_improved_prob
+
+update general_ght.enhanced_pull_requests as epr
+set days_to_first_bug = fb.days_to_first_bug
 from
-general_ght.pull_request_context_180d_improvement;
+general_ght.pull_request_time_to_first_bug as fb
+where
+epr.id = fb.pull_request_id
+;
+
+# Note - the default was set to -1 to make the column numeric
+# Changed now to unknown
+update general_ght.enhanced_pull_requests as epr
+set days_to_first_bug = null
+where
+days_to_first_bug = -1
+;

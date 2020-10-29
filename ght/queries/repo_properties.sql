@@ -48,6 +48,7 @@ p.repo_name as repo_name
 , avg(first_to_last_commit_minutes) as first_to_last_commit_minutes
 , avg(open_to_merge_minutes) as open_to_merge_minutes
 , avg(first_commit_to_merge_minutes) as first_commit_to_merge_minutes
+, 1.0*sum(if(days_to_first_bug <=7, 1,0))/sum(1) as sloppy_pr_ratio
 from
 general_ght.projects as p
 join
@@ -91,6 +92,7 @@ p.repo_name as repo_name
 , prp.first_to_last_commit_minutes
 , prp.open_to_merge_minutes
 , prp.first_commit_to_merge_minutes
+, prp.sloppy_pr_ratio
 from
 general_ght.projects as p
 left join
@@ -163,6 +165,7 @@ p.repo_name as repo_name
 , avg(first_to_last_commit_minutes) as first_to_last_commit_minutes
 , avg(open_to_merge_minutes) as open_to_merge_minutes
 , avg(first_commit_to_merge_minutes) as first_commit_to_merge_minutes
+, 1.0*sum(if(days_to_first_bug <=7, 1,0))/sum(1) as sloppy_pr_ratio
 from
 general_ght.projects as p
 join
@@ -208,6 +211,7 @@ rpy.*
 , prp.first_to_last_commit_minutes
 , prp.open_to_merge_minutes
 , prp.first_commit_to_merge_minutes
+, prp.sloppy_pr_ratio
 from
 general.repo_properties_per_year as rpy
 left join
