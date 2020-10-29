@@ -12,6 +12,7 @@ general_ght.projects
 AS
 select
  p.*
+, substr(p.url,length('https://api.github.com/repos/') +1) as repo_name
 from
 `ghtorrent-bq.ght.projects` as p
 join
