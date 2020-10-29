@@ -4,7 +4,7 @@ create table
 general_ght.repo_issues_profile
 as
 select
-p.name as repo_name
+p.repo_name as repo_name
 , count(distinct issue_id) as issues
 , count(distinct if(ie.assigned_at is null, null, issue_id)) as assigned_issues
 , 1.0*count(distinct if(ie.assigned_at is null, null, issue_id))/count(distinct issue_id) as assigned_issues_ratio
@@ -28,7 +28,7 @@ general_ght.projects as p
 on
 ie.repo_id = p.id
 group by
-p.name
+p.repo_name
 ;
 
 drop table if exists general_ght.pull_requests_profile;
@@ -37,7 +37,7 @@ create table
 general_ght.pull_requests_profile
 as
 select
-p.name as repo_name
+p.repo_name as repo_name
 , count(distinct epr.id) as pull_requests
 , count(distinct if(epr.opened_at is null, null, epr.id)) as opened_prs
 , 1.0*count(distinct if(epr.opened_at is null, null, epr.id))/count(distinct epr.id) as opened_pr_ratio
@@ -55,7 +55,7 @@ general_ght.enhanced_pull_requests as epr
 on
 p.id = epr.base_repo_id
 group by
-p.name
+p.repo_name
 ;
 
 drop table if exists general_ght.repo_profile;
@@ -64,7 +64,7 @@ create table
 general_ght.repo_profile
 as
 select
-p.name as repo_name
+p.repo_name as repo_name
 , ip.issues
 , ip.assigned_issues
 , ip.assigned_issues_ratio
@@ -96,11 +96,11 @@ general_ght.projects as p
 left join
 general_ght.repo_issues_profile as ip
 on
-p.name = ip.repo_name
+p.repo_name = ip.repo_name
 left join
 general_ght.pull_requests_profile as prp
 on
-p.name = prp.repo_name
+p.repo_name = prp.repo_name
 ;
 
 drop table if exists general_ght.repo_issues_profile;
@@ -115,7 +115,7 @@ create table
 general_ght.repo_issues_profile_per_year
 as
 select
-p.name as repo_name
+p.repo_name as repo_name
 , extract(year from ie.created_at) as year
 , count(distinct issue_id) as issues
 , count(distinct if(ie.assigned_at is null, null, issue_id)) as assigned_issues
@@ -140,7 +140,7 @@ general_ght.projects as p
 on
 ie.repo_id = p.id
 group by
-p.name
+p.repo_name
 , extract(year from ie.created_at)
 ;
 
@@ -151,7 +151,7 @@ create table
 general_ght.pull_requests_profile_per_year
 as
 select
-p.name as repo_name
+p.repo_name as repo_name
 , extract(year from epr.opened_at) as year
 , count(distinct epr.id) as pull_requests
 , count(distinct if(epr.opened_at is null, null, epr.id)) as opened_prs
@@ -170,7 +170,7 @@ general_ght.enhanced_pull_requests as epr
 on
 p.id = epr.base_repo_id
 group by
-p.name
+p.repo_name
 , extract(year from epr.opened_at)
 ;
 
