@@ -30,6 +30,14 @@ author_email
 , 1.253*count(distinct case when is_corrective  then commit else null end)/count(distinct commit) -0.053 as ccp
 , 1.695*count(distinct case when is_refactor  then commit else null end)/count(distinct commit) -0.034 as refactor_mle
 
+
+, avg(if(not is_corrective and parents = 1, non_test_files, null)) as avg_coupling_size
+, avg(if(not is_corrective and parents = 1, code_non_test_files, null)) as avg_coupling_code_size
+, avg(if(not is_corrective and parents = 1, if(non_test_files > 103 , 103 , non_test_files), null)) as avg_coupling_size_capped
+, avg(if(not is_corrective and parents = 1, if(code_non_test_files> 103 , 103 ,code_non_test_files), null)) as avg_coupling_code_size_capped
+, avg(if(not is_corrective and parents = 1, if(non_test_files > 103 , null , non_test_files), null)) as avg_coupling_size_cut
+, avg(if(not is_corrective and parents = 1, if(code_non_test_files> 103 , null ,code_non_test_files), null)) as avg_coupling_code_size_cut
+
 , 0.0 as tests_presence
 #	\item Percent of effective refactors
 
@@ -49,7 +57,9 @@ as single_line_message_ratio
 
 , TIMESTAMP_DIFF(max(ec.commit_timestamp), min(ec.commit_timestamp), day) as commit_period
 , count(distinct date(ec.commit_timestamp)) as commit_days
-, 1.0*count(distinct commit)/count(distinct date(ec.commit_timestamp)) as commits_per_day
+, if(count(distinct date(ec.commit_timestamp)) > 0
+ , 1.0*count(distinct commit)/count(distinct date(ec.commit_timestamp))
+ , 1.0*count(distinct commit))as commits_per_day
 
 , count(distinct extract(week from date(ec.commit_timestamp))) as commit_weeks
 , count(distinct extract(month from date(ec.commit_timestamp))) as commit_months
@@ -216,6 +226,13 @@ repo_name
 , 1.253*count(distinct case when is_corrective  then commit else null end)/count(distinct commit) -0.053 as ccp
 , 1.695*count(distinct case when is_refactor  then commit else null end)/count(distinct commit) -0.034 as refactor_mle
 
+, avg(if(not is_corrective and parents = 1, non_test_files, null)) as avg_coupling_size
+, avg(if(not is_corrective and parents = 1, code_non_test_files, null)) as avg_coupling_code_size
+, avg(if(not is_corrective and parents = 1, if(non_test_files > 103 , 103 , non_test_files), null)) as avg_coupling_size_capped
+, avg(if(not is_corrective and parents = 1, if(code_non_test_files> 103 , 103 ,code_non_test_files), null)) as avg_coupling_code_size_capped
+, avg(if(not is_corrective and parents = 1, if(non_test_files > 103 , null , non_test_files), null)) as avg_coupling_size_cut
+, avg(if(not is_corrective and parents = 1, if(code_non_test_files> 103 , null ,code_non_test_files), null)) as avg_coupling_code_size_cut
+
 , 0.0 as tests_presence
 
 # Commit message linguistic characteristic (e.g., message length)
@@ -235,8 +252,9 @@ as single_line_message_ratio
 , count(distinct case when same_date_as_prev then commit else null end) as same_date_commits
 
 , TIMESTAMP_DIFF(max(ec.commit_timestamp), min(ec.commit_timestamp), day) as commit_period
-, count(distinct date(ec.commit_timestamp)) as commit_days
-, 1.0*count(distinct commit)/count(distinct date(ec.commit_timestamp)) as commits_per_day
+, if(count(distinct date(ec.commit_timestamp)) > 0
+ , 1.0*count(distinct commit)/count(distinct date(ec.commit_timestamp))
+ , 1.0*count(distinct commit))as commits_per_day
 
 , count(distinct ec.commit_timestamp) as commit_days
 , count(distinct extract(week from date(ec.commit_timestamp))) as commit_weeks
@@ -440,6 +458,13 @@ repo_name
 , 1.253*count(distinct case when is_corrective  then commit else null end)/count(distinct commit) -0.053 as ccp
 , 1.695*count(distinct case when is_refactor  then commit else null end)/count(distinct commit) -0.034 as refactor_mle
 
+, avg(if(not is_corrective and parents = 1, non_test_files, null)) as avg_coupling_size
+, avg(if(not is_corrective and parents = 1, code_non_test_files, null)) as avg_coupling_code_size
+, avg(if(not is_corrective and parents = 1, if(non_test_files > 103 , 103 , non_test_files), null)) as avg_coupling_size_capped
+, avg(if(not is_corrective and parents = 1, if(code_non_test_files> 103 , 103 ,code_non_test_files), null)) as avg_coupling_code_size_capped
+, avg(if(not is_corrective and parents = 1, if(non_test_files > 103 , null , non_test_files), null)) as avg_coupling_size_cut
+, avg(if(not is_corrective and parents = 1, if(code_non_test_files> 103 , null ,code_non_test_files), null)) as avg_coupling_code_size_cut
+
 , 0.0 as tests_presence
 
 # Commit message linguistic characteristic (e.g., message length)
@@ -460,8 +485,9 @@ as single_line_message_ratio
 , count(distinct case when same_date_as_prev then commit else null end) as same_date_commits
 
 , TIMESTAMP_DIFF(max(ec.commit_timestamp), min(ec.commit_timestamp), day) as commit_period
-, count(distinct date(ec.commit_timestamp)) as commit_days
-, 1.0*count(distinct commit)/count(distinct date(ec.commit_timestamp)) as commits_per_day
+, if(count(distinct date(ec.commit_timestamp)) > 0
+ , 1.0*count(distinct commit)/count(distinct date(ec.commit_timestamp))
+ , 1.0*count(distinct commit))as commits_per_day
 
 , count(distinct ec.commit_timestamp) as commit_days
 , count(distinct extract(week from date(ec.commit_timestamp))) as commit_weeks
