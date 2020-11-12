@@ -66,6 +66,9 @@ as multiline_message_ratio
 # Density
 , count(distinct ec.commit_timestamp)/(1+TIMESTAMP_DIFF(max(ec.commit_timestamp), min(ec.commit_timestamp), day)) as commit_day_density
 
+, 0.0 as survival_avg
+, 0.0 as above_year_prob
+
 from
 general.enhanced_commits as ec
 group by
@@ -139,6 +142,47 @@ drop table if exists general.edited_files_by_year;
 
 
 
+drop table if exists general.files_survival_by_year;
+
+create table
+general.files_survival_by_year
+as
+select
+ repo_name
+, extract(year from min_commit_time) as year
+, avg(TIMESTAMP_DIFF(max_commit_time, min_commit_time, DAY)) as survival_avg
+, avg(if(TIMESTAMP_DIFF(max_commit_time, min_commit_time, DAY) > 365, 1, 0)) as above_year_prob
+from
+general.file_properties
+where
+extract(year from min_commit_time)  < extract(year from CURRENT_DATE())
+group by
+repo_name
+, extract(year from min_commit_time)
+;
+
+update general.repo_properties_per_year as rp
+set survival_avg = fs.survival_avg
+, above_year_prob = fs.above_year_prob
+from
+general.files_survival_by_year as fs
+where
+rp.repo_name = fs.repo_name
+and
+rp.year = fs.year
+;
+
+drop table if exists general.files_survival_by_year;
+
+update general.repo_properties_per_year as rp
+set survival_avg = Null
+, above_year_prob = Null
+where
+survival_avg = 0.0
+and
+above_year_prob = 0.0
+;
+
 drop table if exists general.repo_properties;
 
 
@@ -206,6 +250,9 @@ as multiline_message_ratio
 # Density
 , count(distinct ec.commit_timestamp)/(1+TIMESTAMP_DIFF(max(ec.commit_timestamp), min(ec.commit_timestamp), day)) as commit_day_density
 
+, 0.0 as survival_avg
+, 0.0 as above_year_prob
+
 from
 general.enhanced_commits as ec
 group by
@@ -241,3 +288,32 @@ dp.repo_name = aef.repo_name
 ;
 
 drop table if exists general.edited_files;
+
+
+drop table if exists general.files_survival;
+
+create table
+general.files_survival
+as
+select
+ repo_name
+, avg(TIMESTAMP_DIFF(max_commit_time, min_commit_time, DAY)) as survival_avg
+, avg(if(TIMESTAMP_DIFF(max_commit_time, min_commit_time, DAY) > 365, 1, 0)) as above_year_prob
+from
+general.file_properties
+where
+extract(year from min_commit_time)  < extract(year from CURRENT_DATE())
+group by
+repo_name
+;
+
+update general.repo_properties as rp
+set survival_avg = fs.survival_avg
+, above_year_prob = fs.above_year_prob
+from
+general.files_survival as fs
+where
+rp.repo_name = fs.repo_name
+;
+
+drop table if exists general.files_survival;
