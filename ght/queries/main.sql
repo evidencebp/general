@@ -14,3 +14,4 @@
 # 5. Run enhanced_pull_requests.sql
 # 6. Run effective_pull_requests.sql
 # 7. Run repo_properties.sql
+# 8. Run developer_matching.sql
