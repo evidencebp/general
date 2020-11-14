@@ -69,6 +69,16 @@ as multiline_message_ratio
 , 0.0 as survival_avg
 , 0.0 as above_year_prob
 
+# Productivity metrics
+, 0.0 as commits_per_developer
+, 0 as involved_developers
+, 0 as involved_developers_commits
+, 0.0 as commits_per_involved_developer
+, 0 as developer_capped_commits
+, 0.0 as capped_commits_per_developer
+, 0 as involved_developers_capped_commits
+, 0.0 as capped_commits_per_involved_developer
+
 from
 general.enhanced_commits as ec
 group by
@@ -252,6 +262,16 @@ as multiline_message_ratio
 
 , 0.0 as survival_avg
 , 0.0 as above_year_prob
+
+# Productivity metrics
+, 0.0 as commits_per_developer
+, 0 as involved_developers
+, 0 as involved_developers_commits
+, 0.0 as commits_per_involved_developer
+, 0 as developer_capped_commits
+, 0.0 as capped_commits_per_developer
+, 0 as involved_developers_capped_commits
+, 0.0 as capped_commits_per_involved_developer
 
 from
 general.enhanced_commits as ec

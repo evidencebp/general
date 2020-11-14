@@ -10,3 +10,4 @@
 # 8. Run file_properties.sql
 # 9. Run repo_properties.sql
 # 10. Run developer_properties.sql
+# 11. Run repo_productivity_metrics.sql
