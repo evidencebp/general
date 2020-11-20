@@ -78,7 +78,8 @@ as multiline_message_ratio
 , 0.0 as capped_commits_per_developer
 , 0 as involved_developers_capped_commits
 , 0.0 as capped_commits_per_involved_developer
-
+, -1 as stars
+, '' as detection_efficiency
 from
 general.enhanced_commits as ec
 group by
@@ -193,6 +194,12 @@ and
 above_year_prob = 0.0
 ;
 
+update general.repo_properties_per_year as rp
+set stars = Null, detection_efficiency = Null
+where
+True
+;
+
 drop table if exists general.repo_properties;
 
 
@@ -272,7 +279,8 @@ as multiline_message_ratio
 , 0.0 as capped_commits_per_developer
 , 0 as involved_developers_capped_commits
 , 0.0 as capped_commits_per_involved_developer
-
+, -1 as stars
+, '' as detection_efficiency
 from
 general.enhanced_commits as ec
 group by
@@ -337,3 +345,29 @@ rp.repo_name = fs.repo_name
 ;
 
 drop table if exists general.files_survival;
+
+
+update general.repo_properties as dp
+set stars = r.stargazers_count
+from
+general.repos as r
+where
+dp.repo_name = r.repo_name
+;
+
+update general.repo_properties as dp
+set stars = null
+where
+stars = -1
+;
+
+
+update general.repo_properties as dp
+set detection_efficiency = case
+when stars >= 7481 then 'high'
+when tests_presence <= 0.01 then 'low'
+else 'medium'
+end
+where
+True
+;
