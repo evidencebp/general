@@ -6,6 +6,7 @@ create table general_ght.pull_request_actions_agg
 as
 select
 pull_request_id
+, min(created_at) as created_at
 , min(if(action = 'opened', created_at, null)) as opened_at
 , count(distinct if(action = 'opened', id, null)) as opened_num
 , 0 as opened_by
@@ -165,6 +166,7 @@ general_ght.enhanced_pull_requests
 as
 select
 pr.*
+, praa.created_at
 , praa.opened_at
 , praa.opened_num
 , praa.opened_by
