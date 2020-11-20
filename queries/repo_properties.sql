@@ -207,6 +207,18 @@ where
 True
 ;
 
+update general.repo_properties_per_year as rpy
+set detection_efficiency = case
+when r.stargazers_count >= 7481 then 'high'
+when rpy.tests_presence <= 0.01 then 'low'
+else 'medium'
+end
+from
+general.repos as r
+where
+rpy.repo_name = r.repo_name
+; 
+
 drop table if exists general.repo_length_properties_per_year;
 
 
