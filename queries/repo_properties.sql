@@ -78,8 +78,15 @@ as multiline_message_ratio
 , 0.0 as capped_commits_per_developer
 , 0 as involved_developers_capped_commits
 , 0.0 as capped_commits_per_involved_developer
+
 , -1 as stars
 , '' as detection_efficiency
+
+, 0.0 as avg_file_size # Note - this is the current size of files created in this year
+, 0.0 as capped_avg_file_size
+, 0.0 as avg_code_file_size
+, 0.0 as capped_avg_code_file_size
+
 from
 general.enhanced_commits as ec
 group by
@@ -200,6 +207,63 @@ where
 True
 ;
 
+drop table if exists general.repo_length_properties_per_year;
+
+
+create table
+general.repo_length_properties_per_year
+as
+select
+extract(year from min_commit_time) as year
+, c.repo_name
+, avg(size) as avg_file_size
+, avg(if(size > 180000, 180000, size)) as capped_avg_file_size
+, avg(if( fp.extension in ('.bat', '.c', '.cc', '.coffee', '.cpp', '.cs', '.cxx', '.go',
+       '.groovy', '.hs', '.java', '.js', '.lua', '.m',
+       '.module', '.php', '.pl', '.pm', '.py', '.rb', '.s', '.scala',
+       '.sh', '.swift', '.tpl', '.twig'),size, null)) as avg_code_file_size
+, avg(if( fp.extension in ('.bat', '.c', '.cc', '.coffee', '.cpp', '.cs', '.cxx', '.go',
+       '.groovy', '.hs', '.java', '.js', '.lua', '.m',
+       '.module', '.php', '.pl', '.pm', '.py', '.rb', '.s', '.scala',
+       '.sh', '.swift', '.tpl', '.twig')
+       , if(size > 180000, 180000, size)
+       , null)) as capped_avg_code_file_size
+from
+general.contents as c
+join
+general.files as f
+on
+c.repo_name  = f.repo_name
+and
+c.id = f.id
+join
+general.file_properties as fp
+on
+f.repo_name  = fp.repo_name
+and
+f.path = fp.file
+group by
+year
+, c.repo_name
+;
+
+update general.repo_properties_per_year as rp
+set avg_file_size = rly.avg_file_size
+, capped_avg_file_size = rly.capped_avg_file_size
+, avg_code_file_size = rly.avg_code_file_size
+, capped_avg_code_file_size = rly.capped_avg_code_file_size
+from
+general.repo_length_properties_per_year as rly
+where
+rp.repo_name = rly.repo_name
+and
+rp.year = rly.year
+;
+
+drop table if exists general.repo_length_properties_per_year;
+
+##### Create Repo Properties
+
 drop table if exists general.repo_properties;
 
 
@@ -279,8 +343,15 @@ as multiline_message_ratio
 , 0.0 as capped_commits_per_developer
 , 0 as involved_developers_capped_commits
 , 0.0 as capped_commits_per_involved_developer
+
 , -1 as stars
 , '' as detection_efficiency
+
+, 0.0 as avg_file_size
+, 0.0 as capped_avg_file_size
+, 0.0 as avg_code_file_size
+, 0.0 as capped_avg_code_file_size
+
 from
 general.enhanced_commits as ec
 group by
@@ -371,3 +442,44 @@ end
 where
 True
 ;
+
+drop table if exists general.repo_length_properties;
+
+
+create table
+general.repo_length_properties
+as
+select
+repo_name
+, avg(size) as avg_file_size
+, avg(if(size > 180000, 180000, size)) as capped_avg_file_size
+, avg(if( extension in ('.bat', '.c', '.cc', '.coffee', '.cpp', '.cs', '.cxx', '.go',
+       '.groovy', '.hs', '.java', '.js', '.lua', '.m',
+       '.module', '.php', '.pl', '.pm', '.py', '.rb', '.s', '.scala',
+       '.sh', '.swift', '.tpl', '.twig'),size, null)) as avg_code_file_size
+, avg(if( extension in ('.bat', '.c', '.cc', '.coffee', '.cpp', '.cs', '.cxx', '.go',
+       '.groovy', '.hs', '.java', '.js', '.lua', '.m',
+       '.module', '.php', '.pl', '.pm', '.py', '.rb', '.s', '.scala',
+       '.sh', '.swift', '.tpl', '.twig')
+       , if(size > 180000, 180000, size)
+       , null)) as capped_avg_code_file_size
+from
+general.contents
+group by
+repo_name
+;
+
+
+update general.repo_properties as rp
+set
+avg_file_size = rl.avg_file_size
+, capped_avg_file_size = rl.capped_avg_file_size
+, avg_code_file_size = rl.avg_code_file_size
+, capped_avg_code_file_size = rl.capped_avg_code_file_size
+from
+general.repo_length_properties as rl
+where
+rp.repo_name = rl.repo_name
+;
+
+drop table if exists general.repo_length_properties;
