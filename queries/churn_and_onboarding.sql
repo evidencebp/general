@@ -10,7 +10,7 @@ repo_name
 , 1.0*sum(if(TIMESTAMP_DIFF(max_commit_timestamp, min_commit_timestamp, day) > 365,1,0))
         /count(*) as retention_prob # In here is the probability to be active more than a year
 from
-developer_per_repo_profile
+general.developer_per_repo_profile
 group by
 repo_name
 ;
@@ -43,7 +43,7 @@ repo_name
 , 1.0*sum(if(TIMESTAMP_DIFF(max_commit_timestamp, min_commit_timestamp, day) > 365,1,0))
         /count(*) as retention_prob # In here is the probability to be active more than a year
 from
-developer_per_repo_profile_per_year
+general.developer_per_repo_profile_per_year
 group by
 repo_name
 , year
