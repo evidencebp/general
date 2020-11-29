@@ -21,6 +21,19 @@ on
 r.repo_name = substr(p.url,length('https://api.github.com/repos/') +1)
 ;
 
+# There are duplicated projects
+# We keep the earlier one, identified by id.
+DELETE FROM general_ght.projects
+WHERE concat(repo_name, id) NOT IN (
+select
+concat(repo_name, min(id))
+from
+general_ght.projects
+group by
+repo_name
+)
+;
+
 drop table if exists general_ght.pull_requests;
 
 create table
