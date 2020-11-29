@@ -11,3 +11,5 @@
 # 9. Run repo_properties.sql
 # 10. Run developer_properties.sql
 # 11. Run repo_productivity_metrics.sql
+# 12. Run churn_and_onboarding.sql
+# 13. Run commit_file_prev_touch.sql
