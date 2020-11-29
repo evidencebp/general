@@ -25,6 +25,11 @@ repo_name as repo_name
 
 , 1.695*count(distinct case when is_refactor  then commit else null end)/count(distinct commit) -0.034 as refactor_mle
 
+, if(count(distinct if(parents = 1, commit, null)) > 0
+    ,1.0*count(distinct case when is_cursing and parents = 1 then commit else null end)/
+        count(distinct if(parents = 1, commit, null))
+    , null) as cursing_rate
+
 , avg(if(not is_corrective and parents = 1, non_test_files, null)) as avg_coupling_size
 , avg(if(not is_corrective and parents = 1, code_non_test_files, null)) as avg_coupling_code_size
 , avg(if(not is_corrective and parents = 1, if(non_test_files > 103 , 103 , non_test_files), null)) as avg_coupling_size_capped
@@ -46,6 +51,21 @@ repo_name as repo_name
 , 1.0*count(distinct if(REGEXP_CONTAINS(message,'\\n'), commit, null))/ count(distinct commit)
 as multiline_message_ratio
 , avg(length(message)) as message_length_avg
+
+, if(count(distinct case when is_corrective  then commit else null end) > 0
+,1.0*count(distinct if(is_corrective and REGEXP_CONTAINS(message,'\\n'), commit, null))
+/ count(distinct case when is_corrective  then commit else null end)
+, null)
+as corrective_multiline_message_ratio
+, avg(if(is_corrective,length(message), null)) as corrective_message_length_avg
+
+, if(count(distinct case when not is_corrective  then commit else null end) > 0
+,1.0*count(distinct if(not is_corrective and REGEXP_CONTAINS(message,'\\n'), commit, null))
+/ count(distinct case when not is_corrective  then commit else null end)
+, null)
+as non_corrective_multiline_message_ratio
+, avg(if(not is_corrective,length(message), null)) as non_corrective_message_length_avg
+
 
 # Duration
 , avg(case when same_date_as_prev then duration else null end) as same_date_duration_avg
@@ -86,6 +106,16 @@ as multiline_message_ratio
 , 0.0 as capped_avg_file_size
 , 0.0 as avg_code_file_size
 , 0.0 as capped_avg_code_file_size
+
+, 0.0 as sum_file_size # Note - this is the current size of files created in this year
+, 0.0 as capped_sum_file_size
+, 0.0 as sum_code_file_size
+, 0.0 as capped_sum_code_file_size
+
+, -1.0 as onboarding_prob
+, -1.0 as retention_prob
+
+, 0.0 as prev_touch_ago
 
 from
 general.enhanced_commits as ec
@@ -217,7 +247,7 @@ from
 general.repos as r
 where
 rpy.repo_name = r.repo_name
-; 
+;
 
 drop table if exists general.repo_length_properties_per_year;
 
@@ -240,6 +270,20 @@ extract(year from min_commit_time) as year
        '.sh', '.swift', '.tpl', '.twig')
        , if(size > 180000, 180000, size)
        , null)) as capped_avg_code_file_size
+
+, sum(size) as sum_file_size
+, sum(if(size > 180000, 180000, size)) as capped_sum_file_size
+, sum(if( fp.extension in ('.bat', '.c', '.cc', '.coffee', '.cpp', '.cs', '.cxx', '.go',
+       '.groovy', '.hs', '.java', '.js', '.lua', '.m',
+       '.module', '.php', '.pl', '.pm', '.py', '.rb', '.s', '.scala',
+       '.sh', '.swift', '.tpl', '.twig'),size, null)) as sum_code_file_size
+, sum(if( fp.extension in ('.bat', '.c', '.cc', '.coffee', '.cpp', '.cs', '.cxx', '.go',
+       '.groovy', '.hs', '.java', '.js', '.lua', '.m',
+       '.module', '.php', '.pl', '.pm', '.py', '.rb', '.s', '.scala',
+       '.sh', '.swift', '.tpl', '.twig')
+       , if(size > 180000, 180000, size)
+       , null)) as capped_sum_code_file_size
+
 from
 general.contents as c
 join
@@ -264,6 +308,12 @@ set avg_file_size = rly.avg_file_size
 , capped_avg_file_size = rly.capped_avg_file_size
 , avg_code_file_size = rly.avg_code_file_size
 , capped_avg_code_file_size = rly.capped_avg_code_file_size
+
+, sum_file_size = rly.sum_file_size
+, capped_sum_file_size = rly.capped_sum_file_size
+, sum_code_file_size = rly.sum_code_file_size
+, capped_sum_code_file_size = rly.capped_sum_code_file_size
+
 from
 general.repo_length_properties_per_year as rly
 where
@@ -302,6 +352,11 @@ repo_name as repo_name
 
  , 1.695*count(distinct case when is_refactor  then commit else null end)/count(distinct commit) -0.034 as refactor_mle
 
+, if(count(distinct if(parents = 1, commit, null)) > 0
+    ,1.0*count(distinct case when is_cursing and parents = 1 then commit else null end)/
+        count(distinct if(parents = 1, commit, null))
+    , null) as cursing_rate
+
 , avg(if(not is_corrective and parents = 1, non_test_files, null)) as avg_coupling_size
 , avg(if(not is_corrective and parents = 1, code_non_test_files, null)) as avg_coupling_code_size
 , avg(if(not is_corrective and parents = 1, if(non_test_files > 103 , 103 , non_test_files), null)) as avg_coupling_size_capped
@@ -323,6 +378,20 @@ repo_name as repo_name
 , 1.0*count(distinct if(REGEXP_CONTAINS(message,'\\n'), commit, null))/ count(distinct commit)
 as multiline_message_ratio
 , avg(length(message)) as message_length_avg
+
+, if(count(distinct case when is_corrective  then commit else null end) > 0
+,1.0*count(distinct if(is_corrective and REGEXP_CONTAINS(message,'\\n'), commit, null))
+/ count(distinct case when is_corrective  then commit else null end)
+, null)
+as corrective_multiline_message_ratio
+, avg(if(is_corrective,length(message), null)) as corrective_message_length_avg
+
+, if(count(distinct case when not is_corrective  then commit else null end) > 0
+,1.0*count(distinct if(not is_corrective and REGEXP_CONTAINS(message,'\\n'), commit, null))
+/ count(distinct case when not is_corrective  then commit else null end)
+, null)
+as non_corrective_multiline_message_ratio
+, avg(if(not is_corrective,length(message), null)) as non_corrective_message_length_avg
 
 # Duration
 , avg(case when same_date_as_prev then duration else null end) as same_date_duration_avg
@@ -363,6 +432,17 @@ as multiline_message_ratio
 , 0.0 as capped_avg_file_size
 , 0.0 as avg_code_file_size
 , 0.0 as capped_avg_code_file_size
+
+, 0.0 as sum_file_size
+, 0.0 as capped_sum_file_size
+, 0.0 as sum_code_file_size
+, 0.0 as capped_sum_code_file_size
+
+
+, -1.0 as onboarding_prob
+, -1.0 as retention_prob
+
+, 0.0 as prev_touch_ago
 
 from
 general.enhanced_commits as ec
@@ -475,6 +555,20 @@ repo_name
        '.sh', '.swift', '.tpl', '.twig')
        , if(size > 180000, 180000, size)
        , null)) as capped_avg_code_file_size
+       
+, sum(size) as sum_file_size
+, sum(if(size > 180000, 180000, size)) as capped_sum_file_size
+, sum(if( extension in ('.bat', '.c', '.cc', '.coffee', '.cpp', '.cs', '.cxx', '.go',
+       '.groovy', '.hs', '.java', '.js', '.lua', '.m',
+       '.module', '.php', '.pl', '.pm', '.py', '.rb', '.s', '.scala',
+       '.sh', '.swift', '.tpl', '.twig'),size, null)) as sum_code_file_size
+, sum(if( extension in ('.bat', '.c', '.cc', '.coffee', '.cpp', '.cs', '.cxx', '.go',
+       '.groovy', '.hs', '.java', '.js', '.lua', '.m',
+       '.module', '.php', '.pl', '.pm', '.py', '.rb', '.s', '.scala',
+       '.sh', '.swift', '.tpl', '.twig')
+       , if(size > 180000, 180000, size)
+       , null)) as capped_sum_code_file_size
+
 from
 general.contents
 group by
@@ -488,6 +582,12 @@ avg_file_size = rl.avg_file_size
 , capped_avg_file_size = rl.capped_avg_file_size
 , avg_code_file_size = rl.avg_code_file_size
 , capped_avg_code_file_size = rl.capped_avg_code_file_size
+
+, sum_file_size = rl.sum_file_size
+, capped_sum_file_size = rl.capped_sum_file_size
+, sum_code_file_size = rl.sum_code_file_size
+, capped_sum_code_file_size = rl.capped_sum_code_file_size
+
 from
 general.repo_length_properties as rl
 where
