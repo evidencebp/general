@@ -1,3 +1,4 @@
+# effective_pull_request.sql
 drop table if exists general_ght.bug_after_pr;
 
 create table

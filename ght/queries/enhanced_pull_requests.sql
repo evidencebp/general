@@ -1,4 +1,4 @@
-
+# enhanced_pull_requests.sql
 drop table if exists general_ght.pull_request_actions_agg;
 
 

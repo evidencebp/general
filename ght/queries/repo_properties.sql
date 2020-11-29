@@ -1,3 +1,4 @@
+# GHT repo_properties.sql
 drop table if exists general_ght.repo_issues_profile;
 
 create table
@@ -62,7 +63,7 @@ p.repo_name
 drop table if exists general_ght.repo_profile;
 
 drop table if exists general_ght.repo_profile;
-
+# TODO - repo is no unique
 create table
 general_ght.repo_profile
 as
@@ -100,11 +101,11 @@ rp.*
 , ip.merged_issues/rp.authors as merged_issues_per_developer
 , if(rp.involved_developers > 0
         , ip.merged_issues/rp.involved_developers
-        , null)as merged_issues_per_involved_developer
+        , null) as merged_issues_per_involved_developer
 , prp.merged_prs/rp.authors as merged_prs_per_developer
 , if(rp.involved_developers > 0
         , prp.merged_prs/rp.involved_developers
-        , null)as merged_prs_per_involved_developer
+        , null) as merged_prs_per_involved_developer
 
 from
 general.repo_properties as rp
@@ -170,6 +171,7 @@ p.repo_name as repo_name
 , avg( assigned_to_closed_minutes ) as assigned_to_closed_minutes
 , avg( created_to_assigned_minutes ) as created_to_assigned_minutes
 , avg( created_to_closed_minutes ) as created_to_closed_minutes
+
 from
 general.repo_properties_per_year as rpy
 join

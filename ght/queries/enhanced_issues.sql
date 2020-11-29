@@ -1,4 +1,4 @@
-
+# enhanced_issues.sql
 drop table if exists general_ght.issue_actions_agg;
 
 
