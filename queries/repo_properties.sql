@@ -425,7 +425,14 @@ as non_corrective_multiline_message_ratio
 , 0 as involved_developers_capped_commits
 , 0.0 as capped_commits_per_involved_developer
 
+# GITAPI properties
+, '' as language
+, -1 as language_code
+, -1 age
 , -1 as stars
+
+, False  Is_Company
+
 , '' as detection_efficiency
 
 , 0.0 as avg_file_size
@@ -510,12 +517,27 @@ rp.repo_name = fs.repo_name
 drop table if exists general.files_survival;
 
 
-update general.repo_properties as dp
-set stars = r.stargazers_count
+update general.repo_properties as rp
+set
+stars = r.stargazers_count
+, language = r.language
+, language_code = case
+when r.language = 'C++' then 1
+when r.language = 'C#' then 2
+when r.language = 'Java' then 3
+when r.language = 'JavaScript' then 4
+when r.language = 'PHP' then 5
+when r.language = 'Python' then 6
+when r.language = 'Shell' then 1
+else 0
+end
+, age = DATE_DIFF(CURRENT_DATE, date(min_commit_time), year)
+, Is_Company = r.Is_Company
+
 from
 general.repos as r
 where
-dp.repo_name = r.repo_name
+rp.repo_name = r.repo_name
 ;
 
 update general.repo_properties as dp
