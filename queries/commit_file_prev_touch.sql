@@ -72,6 +72,66 @@ from
 general.commits_files_with_prev as main
 ;
 
+
+drop table if exists general.file_prev_touch_stats;
+
+create table
+general.file_prev_touch_stats
+as
+select
+repo_name
+, file
+, avg(prev_touch_ago) as prev_touch_ago
+from
+general.commits_files_with_prev_touch
+group by
+repo_name
+, file
+;
+
+update general.file_properties as rp
+set prev_touch_ago = aux.prev_touch_ago
+from
+general.file_prev_touch_stats as aux
+where
+rp.repo_name = aux.repo_name
+and
+rp.file = aux.file
+;
+
+
+
+drop table if exists general.file_prev_touch_stats_per_year;
+
+create table
+general.file_prev_touch_stats_per_year
+as
+select
+repo_name
+, file
+, extract(year from commit_timestamp) as year
+, avg(prev_touch_ago) as prev_touch_ago
+from
+general.commits_files_with_prev_touch
+group by
+repo_name
+, file
+, extract(year from commit_timestamp)
+;
+
+update general.file_properties_per_year as rp
+set prev_touch_ago = aux.prev_touch_ago
+from
+general.file_prev_touch_stats_per_year as aux
+where
+rp.repo_name = aux.repo_name
+and
+rp.file = aux.file
+and
+rp.year = aux.year
+;
+
+
 drop table if exists general.commit_prev_touch;
 
 create table
@@ -153,6 +213,9 @@ prev_touch_ago = 0.0
 ;
 
 drop table if exists general.repo_per_year_prev_touch;
+
+drop table if exists general.file_prev_touch_stats;
+drop table if exists general.file_prev_touch_stats_per_year;
 
 drop table if exists general.commits_files_prev_timestamp;
 drop table if exists general.commits_files_with_prev;

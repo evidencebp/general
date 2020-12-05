@@ -50,6 +50,8 @@ cf.repo_name as repo_name
 
 , avg(if(same_date_as_prev, duration, null)) as same_day_duration_avg
 
+, 0.0 as prev_touch_ago
+
 from
 general.commits_files as cf
 join
@@ -154,6 +156,8 @@ cf.repo_name as repo_name
 , max(cf.Author_email) as Author_email # Meaningful only when authors=1
 , min(ec.commit_month) as commit_month
 , avg(if(same_date_as_prev, duration, null)) as same_day_duration_avg
+
+, 0.0 as prev_touch_ago
 
 from
 general.commits_files as cf
