@@ -20,15 +20,34 @@ not tested.is_test
 and
 REGEXP_REPLACE(lower(if(STRPOS(testing.file, '/') >= 0
     ,reverse(substr(reverse(testing.file), 0, STRPOS(reverse(testing.file), '/') ))
-    , testing.file)), '(test(er|s|ting)?(bed|apps|data|suite)?|_|-|/)', '')
+    , testing.file)), '(test(er|s|ting)?(bed|apps|data|suite)?|_|-|/|\\.)', '')
 = REGEXP_REPLACE(lower(if(STRPOS(tested.file, '/') >= 0
     ,reverse(substr(reverse(tested.file), 0, STRPOS(reverse(tested.file), '/') ))
-    , tested.file)), '(test(er|s|ting)?(bed|apps|data|suite)?|_|-|/)', '')
+    , tested.file)), '(test(er|s|ting)?(bed|apps|data|suite)?|_|-|/|\\.)', '')
 
 and
-REGEXP_REPLACE(lower(testing.file), '(test(er|s|ting)?(bed|apps|data|suite)?|_|-|/)', '')
-= REGEXP_REPLACE(lower(tested.file), '(test(er|s|ting)?(bed|apps|data|suite)?|_|-|/)', '')
+REGEXP_REPLACE(lower(testing.file), '([a-z0-9-]*test(er|s|ting)?[a-z0-9-]*|_|-|/)', '')
+= REGEXP_REPLACE(lower(tested.file), '([a-z0-9-]*test(er|s|ting)?[a-z0-9-]*|_|-|/)', '')
 ;
+
+
+WITH tab AS (
+  SELECT  'timer_test.go' AS file
+            , 'timergo' as expected
+    UNION ALL SELECT 'ThrowingPushPromisesAsInputStreamCustom.java'
+                    , 'throwingpushpromisesasinputstreamcustomjava'
+
+    UNION ALL SELECT 'test_hyperrectdomain.cpp'
+                    , 'hyperrectdomaincpp'
+
+)
+SELECT file
+, REGEXP_REPLACE(lower(testing.file), '(test(er|s|ting)?(bed|apps|data|suite)?|_|-|/|\\.)', '') = expected as pass
+, REGEXP_REPLACE(lower(testing.file), '(test(er|s|ting)?(bed|apps|data|suite)?|_|-|/|\\.)', '') as cannon_name
+, expected
+FROM tab as testing
+;
+
 
 
 WITH tab AS (
@@ -39,11 +58,18 @@ WITH tab AS (
 
     UNION ALL SELECT 'tests/test_hyperrectdomain.cpp'
                     , 'hyperrectdomain.cpp'
+    UNION ALL SELECT 'tests/benchmark/test-data/node_modules/lodash/_asciiWords.js'
+                    , 'benchmarknodemoduleslodashasciiwords.js'
+
+
+
+
 
 )
 SELECT file
-, REGEXP_REPLACE(lower(testing.file), '(test(er|s|ting)?(bed|apps|data|suite)?|_|-|/)', '') as cannon_name
-, REGEXP_REPLACE(lower(testing.file), '(test(er|s|ting)?(bed|apps|data|suite)?|_|-|/)', '') = expected as pass
+, REGEXP_REPLACE(lower(testing.file), '([a-z0-9-]*test(er|s|ting)?[a-z0-9-]*|_|-|/)', '') = expected as pass
+, REGEXP_REPLACE(lower(testing.file), '([a-z0-9-]*test(er|s|ting)?[a-z0-9-]*|_|-|/)', '') as cannon_name
+, expected
 FROM tab as testing
 ;
 
@@ -51,7 +77,7 @@ FROM tab as testing
 select
 testing.repo_name
 , testing.file
-, REGEXP_REPLACE(lower(testing.file), '(test(er|s|ting)?(bed|apps|data|suite)?|_|-|/)', '') as cannon_name
+, REGEXP_REPLACE(lower(testing.file), '([a-z0-9-]*test(er|s|ting)?[a-z0-9-]*|_|-|/)', '') as cannon_name
 from
 general.file_properties as testing
 left join
