@@ -24,7 +24,7 @@ general.contents
 as
 SELECT
 cnt.*
-# Note - all the properties bellow make compuation more efficient but do not exist in Google's scheme
+# Note - all the properties bellow make computation more efficient but do not exist in Google's scheme
 , f.repo_name as repo_name
 , f.path as path
 , lower(reverse(substr(reverse(f.path), 0
