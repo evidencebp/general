@@ -26,8 +26,8 @@ cf.repo_name as repo_name
         count(distinct if(parents = 1, cf.commit, null))
     , null) as corrective_rate
 , if(count(distinct if(parents = 1, cf.commit, null)) > 0
-    , 1.253*count(distinct case when cf.is_corrective  and parents = 1 then cf.commit else null end)/
-        count(distinct if(parents = 1, cf.commit, null)) -0.053
+    , general.bq_ccp_mle(1.0*count(distinct case when cf.is_corrective  and parents = 1 then cf.commit else null end)/
+        count(distinct if(parents = 1, cf.commit, null)))
     , null ) as ccp
 , avg(if(not cf.is_corrective and parents = 1, non_test_files, null)) as avg_coupling_size
 , avg(if(not cf.is_corrective and parents = 1, code_non_test_files, null)) as avg_coupling_code_size
@@ -134,8 +134,8 @@ cf.repo_name as repo_name
         count(distinct if(parents = 1, cf.commit, null))
     , null) as corrective_rate
 , if(count(distinct if(parents = 1, cf.commit, null)) > 0
-    , 1.253*count(distinct case when cf.is_corrective  and parents = 1 then cf.commit else null end)/
-        count(distinct if(parents = 1, cf.commit, null)) -0.053
+    , general.bq_ccp_mle(1.0*count(distinct case when cf.is_corrective  and parents = 1 then cf.commit else null end)/
+        count(distinct if(parents = 1, cf.commit, null)))
     , null ) as ccp
 , avg(if(not cf.is_corrective and parents = 1, non_test_files, null)) as avg_coupling_size
 , avg(if(not cf.is_corrective and parents = 1, code_non_test_files, null)) as avg_coupling_code_size
