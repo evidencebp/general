@@ -37,11 +37,25 @@ cnt.*
  cnt.id = f.id
  ;
 
-
 drop table if exists general.commits;
 
 create table
 general.commits
+as
+select
+c.*
+from
+`bigquery-public-data.github_repos.commits` as c
+cross join  UNNEST(repo_name) as commit_repo_name
+Join
+general.repos as r
+On commit_repo_name = r.Repo_name
+;
+
+drop table if exists general.flat_commits;
+
+create table
+general.flat_commits
 partition by
 commit_month
 cluster by
@@ -97,5 +111,7 @@ c.*
 , commit_timestamp as prev_timestamp
 , False as same_date_as_prev
 from
-general.commits as c
+general.flat_commits as c
 ;
+
+drop table if exists general.flat_commits;
