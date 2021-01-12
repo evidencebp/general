@@ -19,11 +19,12 @@ repo_name as repo_name
         count(distinct if(parents = 1, commit, null))
     , null) as corrective_rate
 , if(count(distinct if(parents = 1, commit, null)) > 0
-    , 1.253*count(distinct case when is_corrective  and parents = 1 then commit else null end)/
-        count(distinct if(parents = 1, commit, null)) -0.053
+    , general.bq_ccp_mle(1.0*count(distinct case when is_corrective  and parents = 1 then commit else null end)/
+        count(distinct if(parents = 1, commit, null)))
     , null ) as ccp
 
-, 1.695*count(distinct case when is_refactor  then commit else null end)/count(distinct commit) -0.034 as refactor_mle
+, general.bq_refactor_mle(1.0*count(distinct case when is_refactor  then commit else null end)/count(distinct commit))
+        as refactor_mle
 
 , if(count(distinct if(parents = 1, commit, null)) > 0
     ,1.0*count(distinct case when is_cursing and parents = 1 then commit else null end)/
@@ -135,7 +136,7 @@ select
 repo_name
 , extract(year from min_commit_time) as year
 , count(distinct file) as files
-, 1.253*sum(corrective_commits)/sum(commits) -0.053 as ccp
+, general.bq_ccp_mle(1.0*sum(corrective_commits)/sum(commits)) as ccp
 from
 general.file_properties
 group by
@@ -166,7 +167,7 @@ select
  repo_name
 , extract(year from commit_timestamp) as year
 , count(distinct concat(repo_name, file)) as files
-, 1.253*count(distinct if(is_corrective, commit, null))/count(distinct commit) -0.053 as ccp
+, general.bq_ccp_mle(1.0*count(distinct if(is_corrective, commit, null))/count(distinct commit)) as ccp
 , sum(if(is_test, 1,0))/count(*)  as tests_presence
 from
 general.commits_files
@@ -346,11 +347,12 @@ repo_name as repo_name
         count(distinct if(parents = 1, commit, null))
     , null) as corrective_rate
 , if(count(distinct if(parents = 1, commit, null)) > 0
-    , 1.253*count(distinct case when is_corrective  and parents = 1 then commit else null end)/
-        count(distinct if(parents = 1, commit, null)) -0.053
+    , general.bq_ccp_mle(1.0*count(distinct case when is_corrective  and parents = 1 then commit else null end)/
+        count(distinct if(parents = 1, commit, null)))
     , null ) as ccp
 
- , 1.695*count(distinct case when is_refactor  then commit else null end)/count(distinct commit) -0.034 as refactor_mle
+, general.bq_refactor_mle(1.0*count(distinct case when is_refactor  then commit else null end)/count(distinct commit))
+        as refactor_mle
 
 , if(count(distinct if(parents = 1, commit, null)) > 0
     ,1.0*count(distinct case when is_cursing and parents = 1 then commit else null end)/
@@ -466,7 +468,7 @@ as
 select
  repo_name
 , count(distinct concat(repo_name, file)) as files
-, 1.253*count(distinct if(is_corrective, commit, null))/count(distinct commit) -0.053 as ccp
+, general.bq_ccp_mle(1.0*count(distinct if(is_corrective, commit, null))/count(distinct commit)) as ccp
 , sum(if(is_test, 1,0))/count(*)  as tests_presence
 from
 general.commits_files
