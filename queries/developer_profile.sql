@@ -27,8 +27,8 @@ author_email
 , 0.0 as files_created_ccp
 , 0.0 as files_owned_ccp
 
-, 1.253*count(distinct case when is_corrective  then commit else null end)/count(distinct commit) -0.053 as ccp
-, 1.695*count(distinct case when is_refactor  then commit else null end)/count(distinct commit) -0.034 as refactor_mle
+, general.bq_ccp_mle(1.0*count(distinct case when is_corrective  then commit else null end)/count(distinct commit)) as ccp
+, general.bq_refactor_mle(1.0*count(distinct case when is_refactor  then commit else null end)/count(distinct commit)) as refactor_mle
 
 
 , avg(if(not is_corrective and parents = 1, non_test_files, null)) as avg_coupling_size
@@ -118,7 +118,7 @@ as
 select
 creator_email
 , count(distinct file) as files
-, 1.253*sum(corrective_commits)/sum(commits) -0.053 as ccp
+, general.bq_ccp_mle(1.0*sum(corrective_commits)/sum(commits)) as ccp
 from
 general.file_properties
 group by
@@ -145,7 +145,7 @@ as
 select
 Author_email
 , count(distinct concat(repo_name, file)) as files
-, 1.253*sum(corrective_commits)/sum(commits) -0.053 as ccp
+, general.bq_ccp_mle(1.0*sum(corrective_commits)/sum(commits)) as ccp
 from
 general.file_properties
 where
@@ -174,7 +174,7 @@ as
 select
 author_email
 , count(distinct concat(repo_name, file)) as files
-, 1.253*count(distinct if(is_corrective, commit, null))/count(distinct commit) -0.053 as ccp
+, general.bq_ccp_mle(1.0*count(distinct if(is_corrective, commit, null))/count(distinct commit)) as ccp
 , sum(if(is_test, 1,0))/count(*)  as tests_presence
 from
 general.commits_files
@@ -223,8 +223,8 @@ repo_name
 , 0.0 as files_created_ccp
 , 0.0 as files_owned_ccp
 
-, 1.253*count(distinct case when is_corrective  then commit else null end)/count(distinct commit) -0.053 as ccp
-, 1.695*count(distinct case when is_refactor  then commit else null end)/count(distinct commit) -0.034 as refactor_mle
+, general.bq_ccp_mle(1.0*count(distinct case when is_corrective  then commit else null end)/count(distinct commit)) as ccp
+, general.bq_refactor_mle(1.0*count(distinct case when is_refactor  then commit else null end)/count(distinct commit)) as refactor_mle
 
 , avg(if(not is_corrective and parents = 1, non_test_files, null)) as avg_coupling_size
 , avg(if(not is_corrective and parents = 1, code_non_test_files, null)) as avg_coupling_code_size
@@ -329,7 +329,7 @@ select
 creator_email
 , repo_name
 , count(distinct file) as files
-, 1.253*sum(corrective_commits)/sum(commits) -0.053 as ccp
+, general.bq_ccp_mle(1.0*sum(corrective_commits)/sum(commits)) as ccp
 from
 general.file_properties
 group by
@@ -360,7 +360,7 @@ select
 Author_email
 , repo_name
 , count(distinct concat(repo_name, file)) as files
-, 1.253*sum(corrective_commits)/sum(commits) -0.053 as ccp
+, general.bq_ccp_mle(1.0*sum(corrective_commits)/sum(commits)) as ccp
 from
 general.file_properties
 where
@@ -393,7 +393,7 @@ select
 author_email
 , repo_name
 , count(distinct concat(repo_name, file)) as files
-, 1.253*count(distinct if(is_corrective, commit, null))/count(distinct commit) -0.053 as ccp
+, general.bq_ccp_mle(1.0*count(distinct if(is_corrective, commit, null))/count(distinct commit)) as ccp
 , sum(if(is_test, 1,0))/count(*)  as tests_presence
 from
 general.commits_files
@@ -455,8 +455,8 @@ repo_name
 , 0.0 as files_created_ccp
 , 0.0 as files_owned_ccp
 
-, 1.253*count(distinct case when is_corrective  then commit else null end)/count(distinct commit) -0.053 as ccp
-, 1.695*count(distinct case when is_refactor  then commit else null end)/count(distinct commit) -0.034 as refactor_mle
+, general.bq_ccp_mle(1.0*count(distinct case when is_corrective  then commit else null end)/count(distinct commit)) as ccp
+, general.bq_refactor_mle(1.0*count(distinct case when is_refactor  then commit else null end)/count(distinct commit)) as refactor_mle
 
 , avg(if(not is_corrective and parents = 1, non_test_files, null)) as avg_coupling_size
 , avg(if(not is_corrective and parents = 1, code_non_test_files, null)) as avg_coupling_code_size
@@ -565,7 +565,7 @@ creator_email
 , repo_name
 , extract(year from min_commit_time) as year
 , count(distinct file) as files
-, 1.253*sum(corrective_commits)/sum(commits) -0.053 as ccp
+, general.bq_ccp_mle(1.0*sum(corrective_commits)/sum(commits)) as ccp
 from
 general.file_properties
 group by
@@ -599,7 +599,7 @@ Author_email
 , repo_name
 , extract(year from min_commit_time) as year
 , count(distinct concat(repo_name, file)) as files
-, 1.253*sum(corrective_commits)/sum(commits) -0.053 as ccp
+, general.bq_ccp_mle(1.0*sum(corrective_commits)/sum(commits)) as ccp
 from
 general.file_properties
 where
@@ -635,7 +635,7 @@ author_email
 , repo_name
 , extract(year from commit_timestamp) as year
 , count(distinct concat(repo_name, file)) as files
-, 1.253*count(distinct if(is_corrective, commit, null))/count(distinct commit) -0.053 as ccp
+, general.bq_ccp_mle(1.0*count(distinct if(is_corrective, commit, null))/count(distinct commit)) as ccp
 , sum(if(is_test, 1,0))/count(*)  as tests_presence
 from
 general.commits_files
