@@ -88,34 +88,34 @@ as
 select
 epr.id
 , prcf.file
-, count(distinct if(cf.commit_timestamp >  epr.merged_at , cf.commit, null)) as commits_after
-, if(count(distinct if(cf.commit_timestamp >  epr.merged_at, cf.commit, null)) > 0
+, count(distinct if(ec.commit_timestamp >  epr.merged_at , cf.commit, null)) as commits_after
+, if(count(distinct if(ec.commit_timestamp >  epr.merged_at, cf.commit, null)) > 0
     , 1.253*count(distinct case when cf.is_corrective
-        and cf.commit_timestamp >  epr.merged_at then cf.commit else null end)
-        /count(distinct if(cf.commit_timestamp >  epr.merged_at, cf.commit, null)) -0.053
+        and ec.commit_timestamp >  epr.merged_at then cf.commit else null end)
+        /count(distinct if(ec.commit_timestamp >  epr.merged_at, cf.commit, null)) -0.053
    , null) as ccp_after
-, if(count(distinct if(cf.commit_timestamp >  epr.merged_at, cf.commit, null)) > 0
+, if(count(distinct if(ec.commit_timestamp >  epr.merged_at, cf.commit, null)) > 0
     , 1.695*count(distinct case when cf.is_refactor
-        and cf.commit_timestamp >  epr.merged_at then cf.commit else null end)
-        /count(distinct if(cf.commit_timestamp >  epr.merged_at, cf.commit, null))-0.034
+        and ec.commit_timestamp >  epr.merged_at then cf.commit else null end)
+        /count(distinct if(ec.commit_timestamp >  epr.merged_at, cf.commit, null))-0.034
    , null) as refactor_mle_after
-, avg(if(cf.commit_timestamp >  epr.merged_at and ec.same_date_as_prev, ec.duration, null)) as same_date_duration_after
-, avg(if(cf.commit_timestamp >  epr.merged_at and not cf.is_corrective and parents = 1
+, avg(if(ec.commit_timestamp >  epr.merged_at and ec.same_date_as_prev, ec.duration, null)) as same_date_duration_after
+, avg(if(ec.commit_timestamp >  epr.merged_at and not cf.is_corrective and parents = 1
     , if(non_test_files > 103 , 103 , non_test_files), null)) as avg_coupling_size_capped_after
 
-, count(distinct if(cf.commit_timestamp <  epr.merged_at, cf.commit, null)) as commits_before
-, if(count(distinct if(cf.commit_timestamp <  epr.merged_at, cf.commit, null)) > 0
+, count(distinct if(ec.commit_timestamp <  epr.merged_at, cf.commit, null)) as commits_before
+, if(count(distinct if(ec.commit_timestamp <  epr.merged_at, cf.commit, null)) > 0
     , 1.253*count(distinct case when cf.is_corrective
-        and cf.commit_timestamp <  epr.merged_at then cf.commit else null end)
-        /count(distinct if(cf.commit_timestamp <  epr.merged_at, cf.commit, null)) -0.053
+        and ec.commit_timestamp <  epr.merged_at then cf.commit else null end)
+        /count(distinct if(ec.commit_timestamp <  epr.merged_at, cf.commit, null)) -0.053
    , null) as ccp_before
-, if(count(distinct if(cf.commit_timestamp <  epr.merged_at, cf.commit, null)) > 0
+, if(count(distinct if(ec.commit_timestamp <  epr.merged_at, cf.commit, null)) > 0
     , 1.695*count(distinct case when cf.is_refactor
-        and cf.commit_timestamp <  epr.merged_at then cf.commit else null end)
-        /count(distinct if(cf.commit_timestamp <  epr.merged_at, cf.commit, null))-0.034
+        and ec.commit_timestamp <  epr.merged_at then cf.commit else null end)
+        /count(distinct if(ec.commit_timestamp <  epr.merged_at, cf.commit, null))-0.034
    , null) as refactor_mle_before
-, avg(if(cf.commit_timestamp <  epr.merged_at and ec.same_date_as_prev, ec.duration, null)) as same_date_duration_before
-, avg(if(cf.commit_timestamp <  epr.merged_at and not cf.is_corrective and parents = 1
+, avg(if(ec.commit_timestamp <  epr.merged_at and ec.same_date_as_prev, ec.duration, null)) as same_date_duration_before
+, avg(if(ec.commit_timestamp <  epr.merged_at and not cf.is_corrective and parents = 1
     , if(non_test_files > 103 , 103 , non_test_files), null)) as avg_coupling_size_capped_before
 from
 general_ght.enhanced_pull_requests as epr
@@ -129,14 +129,14 @@ on
 prcf.repo_name = cf.repo_name
 and
 prcf.file = cf.file
-and
-abs(TIMESTAMP_DIFF(cf.commit_timestamp, epr.merged_at, DAY)) <= 6*30
 join
 general.enhanced_commits as ec
 on
 cf.repo_name = ec.repo_name
 and
 cf.commit = ec.commit
+and
+abs(TIMESTAMP_DIFF(ec.commit_timestamp, epr.merged_at, DAY)) <= 6*30
 where
  epr.merged_at  is not null
 group by
@@ -176,18 +176,34 @@ as
 select
 id
 , count(distinct file) as files
+, avg(commits_before) as commits_before
+, avg(commits_after) as commits_after
+
+, avg(ccp_before) as ccp_before
+, avg(same_date_duration_before) as same_date_duration_before
+, avg(avg_coupling_size_capped_before) as avg_coupling_size_capped_before
+
+, sum(ccp_diff) as ccp_diff_sum
+, sum(ccp_diff) > 0 as ccp_improved_sum
+, avg(ccp_diff) as ccp_diff_avg
+, avg(ccp_diff) > 0 as ccp_improved_avg
+
+, sum(same_date_duration_diff) as same_date_duration_diff_sum
+, sum(same_date_duration_diff) > 0 as same_date_duration_improved_sum
+, avg(same_date_duration_diff) as same_date_duration_diff_avg
+, avg(same_date_duration_diff) > 0 as same_date_duration_improved_avg
+
+, sum(avg_coupling_size_capped_diff) as avg_coupling_size_capped_diff_sum
+, sum(avg_coupling_size_capped_diff) > 0 as avg_coupling_size_capped_improved_sum
+, avg(avg_coupling_size_capped_diff) as avg_coupling_size_capped_diff_avg
+, avg(avg_coupling_size_capped_diff) > 0 as avg_coupling_size_capped_improved_avg
+
 , count(if(ccp_improved and same_date_duration_improved and commits_before > 10 and commits_after > 10 , file, null)) as improved
 , count(if(not ccp_improved or not same_date_duration_improved, file, null)) as degragated
 from
 general_ght.pull_request_file_context_180d_improvement
 group by
 id
-having
-count(distinct file) <= 10
-and
-count(if(not ccp_improved or not same_date_duration_improved, file, null)) = 0
-and
-count(if(ccp_improved and same_date_duration_improved and commits_before > 10 and commits_after > 10 , file, null)) > 0.5*count(distinct file)
 ;
 
 
