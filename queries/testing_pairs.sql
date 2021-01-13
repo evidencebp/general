@@ -5,7 +5,7 @@ general.testing_pairs
 as
 select
 tested.repo_name as repo_name
-, tested.file as test_file
+, tested.file as tested_file
 , testing.file as testing_file
 from
 general.file_properties as tested
@@ -60,9 +60,10 @@ WITH tab AS (
                     , 'hyperrectdomain.cpp'
     UNION ALL SELECT 'tests/benchmark/test-data/node_modules/lodash/_asciiWords.js'
                     , 'benchmarknodemoduleslodashasciiwords.js'
-
-
-
+    UNION ALL SELECT 'tests/contrib/kubernetes/kubernetes_request_factory/test_kubernetes_request_factory.py'
+                    , 'contribkuberneteskubernetesrequestfactorykubernetesrequestfactory.py'
+    UNION ALL SELECT '/contrib/kubernetes/kubernetes_request_factory/kubernetes_request_factory.py'
+                    , 'contribkuberneteskubernetesrequestfactorykubernetesrequestfactory.py'
 
 
 )
