@@ -120,22 +120,6 @@ praa.pull_request_id = pra.pull_request_id
 drop table if exists general_ght.pull_request_merger;
 
 
-drop table if exists general_ght.pull_request_comments_agg;
-
-create table
-general_ght.pull_request_comments_agg
-as
-select
-pull_request_id
-, count(distinct user_id) as commenters_num
-, STRING_AGG(cast(user_id as string)) as commenters
-, count(distinct comment_id) as comments_num
-from
-general_ght.pull_request_comments
-group by
-pull_request_id
-;
-
 drop table if exists general_ght.pull_request_commits_agg;
 
 create table
@@ -145,7 +129,7 @@ select
 prc.pull_request_id as pull_request_id
 , count(distinct sha) as commits
 , count(distinct author_id ) as authors_num
-, STRING_AGG(cast(author_id as string)) as authors
+, STRING_AGG(distinct cast(author_id as string)) as authors
 , min(author_id) as min_author # Make sense only if there is one author
 , min(c.created_at) as first_commit_timestamp
 , max(c.created_at) as last_commit_timestamp
@@ -157,6 +141,38 @@ on
 prc.commit_id = c.id
 group by
 prc.pull_request_id
+;
+
+
+drop table if exists general_ght.pull_request_comments_agg;
+
+create table
+general_ght.pull_request_comments_agg
+as
+select
+comments.pull_request_id
+, count(distinct user_id) as commenters_num
+, STRING_AGG(distinct cast(user_id as string)) as commenters
+
+, count(distinct if(commits.author_id is not null, user_id, null)) as non_author_commenters_num
+, STRING_AGG(distinct cast(if(commits.author_id is not null, user_id, null) as string)) as non_author_commenters
+
+
+, count(distinct comment_id) as comments_num
+from
+general_ght.pull_request_comments as comments
+left join
+general_ght.pull_request_commits as prc
+on
+comments.pull_request_id = prc.pull_request_id
+left join
+general_ght.commits as commits
+on
+prc.commit_id = commits.id
+and
+comments.user_id = commits.author_id
+group by
+pull_request_id
 ;
 
 drop table if exists general_ght.enhanced_pull_requests;
@@ -181,6 +197,10 @@ pr.*
 
 , prca.commenters_num
 , prca.commenters
+
+, prca.non_author_commenters_num
+, prca.non_author_commenters
+
 , prca.comments_num
 
 
