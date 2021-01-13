@@ -1,6 +1,17 @@
 # get general into repos table (upload if needed)
 # drop table if exists general.repos;
 
+
+# Update Is_Company in repos
+update general.repos as r
+set
+Is_Company = aux.Is_Company
+from
+general.companies as aux
+where
+r.user = aux.user
+;
+
 # Copy repositories relevant files
 drop table if exists general.files;
 
