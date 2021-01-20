@@ -87,6 +87,10 @@ as single_line_message_ratio
 , 0.0 as days_entropy
 , 0.0 as hour_entropy
 
+
+, 0.0 as prev_touch_ago
+,  avg(if(same_date_as_prev, duration, null)) as same_day_duration_avg
+
 # Duration in project
 # Join time relative to project creation
 # Percent of effective refactors
@@ -107,6 +111,7 @@ set days_entropy = - (case when Sunday_prob > 0 then Sunday_prob*log(Sunday_prob
                         + case when Friday_prob > 0 then Friday_prob*log(Friday_prob,2) else 0 end
                         + case when Saturday_prob > 0 then Saturday_prob*log(Saturday_prob,2) else 0 end
 )
+, prev_touch_ago = null
 where true
 ;
 
@@ -146,6 +151,7 @@ select
 Author_email
 , count(distinct concat(repo_name, file)) as files
 , general.bq_ccp_mle(1.0*sum(corrective_commits)/sum(commits)) as ccp
+, sum(prev_touch_ago*commits)/sum(commits) as prev_touch_ago
 from
 general.file_properties
 where
@@ -155,7 +161,10 @@ Author_email
 ;
 
 update general.developer_profile as dp
-set files_owned = aof.files, files_owned_ccp = aof.ccp
+set
+files_owned = aof.files
+, files_owned_ccp = aof.ccp
+, prev_touch_ago = aof.prev_touch_ago
 from
 general.author_owned_files as aof
 where
@@ -283,6 +292,9 @@ as single_line_message_ratio
 , 0.0 as days_entropy
 , 0.0 as hour_entropy
 
+, 0.0 as prev_touch_ago
+,  avg(if(same_date_as_prev, duration, null)) as same_day_duration_avg
+
 # Duration in project
 # Join time relative to project creation
 # Number of commits in project
@@ -317,6 +329,7 @@ set days_entropy = - (case when Sunday_prob > 0 then Sunday_prob*log(Sunday_prob
                         + case when Friday_prob > 0 then Friday_prob*log(Friday_prob,2) else 0 end
                         + case when Saturday_prob > 0 then Saturday_prob*log(Saturday_prob,2) else 0 end
 )
+, prev_touch_ago = null
 where true
 ;
 
@@ -361,6 +374,7 @@ Author_email
 , repo_name
 , count(distinct concat(repo_name, file)) as files
 , general.bq_ccp_mle(1.0*sum(corrective_commits)/sum(commits)) as ccp
+, sum(prev_touch_ago*commits)/sum(commits) as prev_touch_ago
 from
 general.file_properties
 where
@@ -371,7 +385,10 @@ Author_email
 ;
 
 update general.developer_per_repo_profile as dp
-set files_owned = aof.files, files_owned_ccp = aof.ccp
+set
+files_owned = aof.files
+, files_owned_ccp = aof.ccp
+, prev_touch_ago = aof.prev_touch_ago
 from
 general.author_owned_files_by_repo as aof
 where
@@ -516,6 +533,9 @@ as single_line_message_ratio
 , 0.0 as days_entropy
 , 0.0 as hour_entropy
 
+, 0.0 as prev_touch_ago
+,  avg(if(same_date_as_prev, duration, null)) as same_day_duration_avg
+
 # Duration in project
 # Join time relative to project creation
 # Number of commits in project
@@ -551,6 +571,7 @@ set days_entropy = - (case when Sunday_prob > 0 then Sunday_prob*log(Sunday_prob
                         + case when Friday_prob > 0 then Friday_prob*log(Friday_prob,2) else 0 end
                         + case when Saturday_prob > 0 then Saturday_prob*log(Saturday_prob,2) else 0 end
 )
+, prev_touch_ago = null
 where true
 ;
 
@@ -600,6 +621,7 @@ Author_email
 , extract(year from min_commit_time) as year
 , count(distinct concat(repo_name, file)) as files
 , general.bq_ccp_mle(1.0*sum(corrective_commits)/sum(commits)) as ccp
+, sum(prev_touch_ago*commits)/sum(commits) as prev_touch_ago
 from
 general.file_properties
 where
@@ -611,7 +633,10 @@ Author_email
 ;
 
 update general.developer_per_repo_profile_per_year as dp
-set files_owned = aof.files, files_owned_ccp = aof.ccp
+set
+files_owned = aof.files
+, files_owned_ccp = aof.ccp
+, prev_touch_ago = aof.prev_touch_ago
 from
 general.author_owned_files_by_repo_by_year as aof
 where
