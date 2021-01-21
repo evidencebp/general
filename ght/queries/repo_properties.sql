@@ -109,7 +109,7 @@ rp.*
 
 from
 general.repo_properties as rp
-join
+left join
 general_ght.projects as p
 on
 rp.repo_name = p.repo_name
