@@ -29,6 +29,10 @@ author_email
 
 , general.bq_ccp_mle(1.0*count(distinct case when is_corrective  then commit else null end)/count(distinct commit)) as ccp
 , general.bq_refactor_mle(1.0*count(distinct case when is_refactor  then commit else null end)/count(distinct commit)) as refactor_mle
+, if(count(distinct if(parents = 1, commit, null)) > 0
+    ,1.0*count(distinct case when is_cursing and parents = 1 then commit else null end)/
+        count(distinct if(parents = 1, commit, null))
+    , null) as cursing_rate
 
 
 , avg(if(not is_corrective and parents = 1, non_test_files, null)) as avg_coupling_size
@@ -42,9 +46,24 @@ author_email
 #	\item Percent of effective refactors
 
 # Commit message linguistic characteristic (e.g., message length)
-, 1.0*count(distinct if(not REGEXP_CONTAINS(message,'\\n'), commit, null))/ count(distinct commit)
-as single_line_message_ratio
+, 1.0*count(distinct if(REGEXP_CONTAINS(message,'\\n'), commit, null))/ count(distinct commit)
+as multiline_message_ratio
 , avg(length(message)) as message_length_avg
+
+, if(count(distinct case when is_corrective  then commit else null end) > 0
+,1.0*count(distinct if(is_corrective and REGEXP_CONTAINS(message,'\\n'), commit, null))
+/ count(distinct case when is_corrective  then commit else null end)
+, null)
+as corrective_multiline_message_ratio
+, avg(if(is_corrective,length(message), null)) as corrective_message_length_avg
+
+, if(count(distinct case when not is_corrective  then commit else null end) > 0
+,1.0*count(distinct if(not is_corrective and REGEXP_CONTAINS(message,'\\n'), commit, null))
+/ count(distinct case when not is_corrective  then commit else null end)
+, null)
+as non_corrective_multiline_message_ratio
+, avg(if(not is_corrective,length(message), null)) as non_corrective_message_length_avg
+
 
 #	\items Commits/distinct commits variation \cite{8952390} \idan{Consider more ideas from there}
 # Developer Reputation Estimator (DRE)
@@ -234,6 +253,10 @@ repo_name
 
 , general.bq_ccp_mle(1.0*count(distinct case when is_corrective  then commit else null end)/count(distinct commit)) as ccp
 , general.bq_refactor_mle(1.0*count(distinct case when is_refactor  then commit else null end)/count(distinct commit)) as refactor_mle
+, if(count(distinct if(parents = 1, commit, null)) > 0
+    ,1.0*count(distinct case when is_cursing and parents = 1 then commit else null end)/
+        count(distinct if(parents = 1, commit, null))
+    , null) as cursing_rate
 
 , avg(if(not is_corrective and parents = 1, non_test_files, null)) as avg_coupling_size
 , avg(if(not is_corrective and parents = 1, code_non_test_files, null)) as avg_coupling_code_size
@@ -245,9 +268,24 @@ repo_name
 , 0.0 as tests_presence
 
 # Commit message linguistic characteristic (e.g., message length)
-, 1.0*count(distinct if(not REGEXP_CONTAINS(message,'\\n'), commit, null))/ count(distinct commit)
-as single_line_message_ratio
+, 1.0*count(distinct if(REGEXP_CONTAINS(message,'\\n'), commit, null))/ count(distinct commit)
+as multiline_message_ratio
 , avg(length(message)) as message_length_avg
+
+, if(count(distinct case when is_corrective  then commit else null end) > 0
+,1.0*count(distinct if(is_corrective and REGEXP_CONTAINS(message,'\\n'), commit, null))
+/ count(distinct case when is_corrective  then commit else null end)
+, null)
+as corrective_multiline_message_ratio
+, avg(if(is_corrective,length(message), null)) as corrective_message_length_avg
+
+, if(count(distinct case when not is_corrective  then commit else null end) > 0
+,1.0*count(distinct if(not is_corrective and REGEXP_CONTAINS(message,'\\n'), commit, null))
+/ count(distinct case when not is_corrective  then commit else null end)
+, null)
+as non_corrective_multiline_message_ratio
+, avg(if(not is_corrective,length(message), null)) as non_corrective_message_length_avg
+
 
 #	\items Commits/distinct commits variation \cite{8952390} \idan{Consider more ideas from there}
 , 1.0*count(*)/count(distinct commit) as duplicated_commits_ratio
@@ -474,6 +512,10 @@ repo_name
 
 , general.bq_ccp_mle(1.0*count(distinct case when is_corrective  then commit else null end)/count(distinct commit)) as ccp
 , general.bq_refactor_mle(1.0*count(distinct case when is_refactor  then commit else null end)/count(distinct commit)) as refactor_mle
+, if(count(distinct if(parents = 1, commit, null)) > 0
+    ,1.0*count(distinct case when is_cursing and parents = 1 then commit else null end)/
+        count(distinct if(parents = 1, commit, null))
+    , null) as cursing_rate
 
 , avg(if(not is_corrective and parents = 1, non_test_files, null)) as avg_coupling_size
 , avg(if(not is_corrective and parents = 1, code_non_test_files, null)) as avg_coupling_code_size
@@ -485,9 +527,23 @@ repo_name
 , 0.0 as tests_presence
 
 # Commit message linguistic characteristic (e.g., message length)
-, 1.0*count(distinct if(not REGEXP_CONTAINS(message,'\\n'), commit, null))/ count(distinct commit)
-as single_line_message_ratio
+, 1.0*count(distinct if(REGEXP_CONTAINS(message,'\\n'), commit, null))/ count(distinct commit)
+as multiline_message_ratio
 , avg(length(message)) as message_length_avg
+
+, if(count(distinct case when is_corrective  then commit else null end) > 0
+,1.0*count(distinct if(is_corrective and REGEXP_CONTAINS(message,'\\n'), commit, null))
+/ count(distinct case when is_corrective  then commit else null end)
+, null)
+as corrective_multiline_message_ratio
+, avg(if(is_corrective,length(message), null)) as corrective_message_length_avg
+
+, if(count(distinct case when not is_corrective  then commit else null end) > 0
+,1.0*count(distinct if(not is_corrective and REGEXP_CONTAINS(message,'\\n'), commit, null))
+/ count(distinct case when not is_corrective  then commit else null end)
+, null)
+as non_corrective_multiline_message_ratio
+, avg(if(not is_corrective,length(message), null)) as non_corrective_message_length_avg
 
 #	\items Commits/distinct commits variation \cite{8952390} \idan{Consider more ideas from there}
 , 1.0*count(*)/count(distinct commit) as duplicated_commits_ratio
