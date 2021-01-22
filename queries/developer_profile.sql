@@ -106,6 +106,16 @@ as non_corrective_multiline_message_ratio
 , 0.0 as days_entropy
 , 0.0 as hour_entropy
 
+, 0.0 as avg_file_size
+, 0.0 as capped_avg_file_size
+, 0.0 as avg_code_file_size
+, 0.0 as capped_avg_code_file_size
+
+, 0.0 as sum_file_size
+, 0.0 as capped_sum_file_size
+, 0.0 as sum_code_file_size
+, 0.0 as capped_sum_code_file_size
+
 
 , 0.0 as prev_touch_ago
 ,  avg(if(same_date_as_prev, duration, null)) as same_day_duration_avg
@@ -223,6 +233,76 @@ drop table if exists general.author_edited_files;
 drop table if exists general.developer_per_repo_profile;
 
 
+drop table if exists general.dev_length_properties;
+
+
+create table
+general.dev_length_properties
+as
+select
+creator_email as author_email
+, avg(size) as avg_file_size
+, avg(if(size > 180000, 180000, size)) as capped_avg_file_size
+, avg(if( c.extension in ('.bat', '.c', '.cc', '.coffee', '.cpp', '.cs', '.cxx', '.go',
+       '.groovy', '.hs', '.java', '.js', '.lua', '.m',
+       '.module', '.php', '.pl', '.pm', '.py', '.rb', '.s', '.scala',
+       '.sh', '.swift', '.tpl', '.twig'),size, null)) as avg_code_file_size
+, avg(if( c.extension in ('.bat', '.c', '.cc', '.coffee', '.cpp', '.cs', '.cxx', '.go',
+       '.groovy', '.hs', '.java', '.js', '.lua', '.m',
+       '.module', '.php', '.pl', '.pm', '.py', '.rb', '.s', '.scala',
+       '.sh', '.swift', '.tpl', '.twig')
+       , if(size > 180000, 180000, size)
+       , null)) as capped_avg_code_file_size
+
+, sum(size) as sum_file_size
+, sum(if(size > 180000, 180000, size)) as capped_sum_file_size
+, sum(if( c.extension in ('.bat', '.c', '.cc', '.coffee', '.cpp', '.cs', '.cxx', '.go',
+       '.groovy', '.hs', '.java', '.js', '.lua', '.m',
+       '.module', '.php', '.pl', '.pm', '.py', '.rb', '.s', '.scala',
+       '.sh', '.swift', '.tpl', '.twig'),size, null)) as sum_code_file_size
+, sum(if( c.extension in ('.bat', '.c', '.cc', '.coffee', '.cpp', '.cs', '.cxx', '.go',
+       '.groovy', '.hs', '.java', '.js', '.lua', '.m',
+       '.module', '.php', '.pl', '.pm', '.py', '.rb', '.s', '.scala',
+       '.sh', '.swift', '.tpl', '.twig')
+       , if(size > 180000, 180000, size)
+       , null)) as capped_sum_code_file_size
+
+from
+general.contents as c
+join
+general.file_properties as fp
+on
+c.repo_name = fp.repo_name
+and
+c.path = fp.file
+where
+authors = 1
+group by
+author_email
+;
+
+
+update general.repo_properties as rp
+set
+avg_file_size = rl.avg_file_size
+, capped_avg_file_size = rl.capped_avg_file_size
+, avg_code_file_size = rl.avg_code_file_size
+, capped_avg_code_file_size = rl.capped_avg_code_file_size
+
+, sum_file_size = rl.sum_file_size
+, capped_sum_file_size = rl.capped_sum_file_size
+, sum_code_file_size = rl.sum_code_file_size
+, capped_sum_code_file_size = rl.capped_sum_code_file_size
+
+from
+general.developer_profile as rl
+where
+rp.author_email = rl.author_email
+;
+
+drop table if exists general.dev_length_properties;
+
+
 ##### Creating developer_per_repo_profile
 
 create table
@@ -329,6 +409,17 @@ as non_corrective_multiline_message_ratio
     /count(distinct ec.commit) as Saturday_prob
 , 0.0 as days_entropy
 , 0.0 as hour_entropy
+
+
+, 0.0 as avg_file_size
+, 0.0 as capped_avg_file_size
+, 0.0 as avg_code_file_size
+, 0.0 as capped_avg_code_file_size
+
+, 0.0 as sum_file_size
+, 0.0 as capped_sum_file_size
+, 0.0 as sum_code_file_size
+, 0.0 as capped_sum_code_file_size
 
 , 0.0 as prev_touch_ago
 ,  avg(if(same_date_as_prev, duration, null)) as same_day_duration_avg
@@ -479,6 +570,80 @@ where
 dp.repo_name = r.repo_name
 ;
 
+
+drop table if exists general.dev_repo_length_properties;
+
+
+create table
+general.dev_repo_length_properties
+as
+select
+c.repo_name as repo_name
+, creator_email as author_email
+, avg(size) as avg_file_size
+, avg(if(size > 180000, 180000, size)) as capped_avg_file_size
+, avg(if( c.extension in ('.bat', '.c', '.cc', '.coffee', '.cpp', '.cs', '.cxx', '.go',
+       '.groovy', '.hs', '.java', '.js', '.lua', '.m',
+       '.module', '.php', '.pl', '.pm', '.py', '.rb', '.s', '.scala',
+       '.sh', '.swift', '.tpl', '.twig'),size, null)) as avg_code_file_size
+, avg(if( c.extension in ('.bat', '.c', '.cc', '.coffee', '.cpp', '.cs', '.cxx', '.go',
+       '.groovy', '.hs', '.java', '.js', '.lua', '.m',
+       '.module', '.php', '.pl', '.pm', '.py', '.rb', '.s', '.scala',
+       '.sh', '.swift', '.tpl', '.twig')
+       , if(size > 180000, 180000, size)
+       , null)) as capped_avg_code_file_size
+
+, sum(size) as sum_file_size
+, sum(if(size > 180000, 180000, size)) as capped_sum_file_size
+, sum(if( c.extension in ('.bat', '.c', '.cc', '.coffee', '.cpp', '.cs', '.cxx', '.go',
+       '.groovy', '.hs', '.java', '.js', '.lua', '.m',
+       '.module', '.php', '.pl', '.pm', '.py', '.rb', '.s', '.scala',
+       '.sh', '.swift', '.tpl', '.twig'),size, null)) as sum_code_file_size
+, sum(if( c.extension in ('.bat', '.c', '.cc', '.coffee', '.cpp', '.cs', '.cxx', '.go',
+       '.groovy', '.hs', '.java', '.js', '.lua', '.m',
+       '.module', '.php', '.pl', '.pm', '.py', '.rb', '.s', '.scala',
+       '.sh', '.swift', '.tpl', '.twig')
+       , if(size > 180000, 180000, size)
+       , null)) as capped_sum_code_file_size
+
+from
+general.contents as c
+join
+general.file_properties as fp
+on
+c.repo_name = fp.repo_name
+and
+c.path = fp.file
+where
+authors = 1
+group by
+c.repo_name
+, author_email
+;
+
+
+update general.developer_per_repo_profile as rp
+set
+avg_file_size = rl.avg_file_size
+, capped_avg_file_size = rl.capped_avg_file_size
+, avg_code_file_size = rl.avg_code_file_size
+, capped_avg_code_file_size = rl.capped_avg_code_file_size
+
+, sum_file_size = rl.sum_file_size
+, capped_sum_file_size = rl.capped_sum_file_size
+, sum_code_file_size = rl.sum_code_file_size
+, capped_sum_code_file_size = rl.capped_sum_code_file_size
+
+from
+general.dev_repo_length_properties as rl
+where
+rp.author_email = rl.author_email
+and
+rp.repo_name = rl.repo_name
+;
+
+drop table if exists general.dev_repo_length_properties;
+
 ##### Creating developer_per_repo_profile_per_year
 
 drop table if exists general.developer_per_repo_profile_per_year;
@@ -588,6 +753,16 @@ as non_corrective_multiline_message_ratio
     /count(distinct ec.commit) as Saturday_prob
 , 0.0 as days_entropy
 , 0.0 as hour_entropy
+
+, 0.0 as avg_file_size
+, 0.0 as capped_avg_file_size
+, 0.0 as avg_code_file_size
+, 0.0 as capped_avg_code_file_size
+
+, 0.0 as sum_file_size
+, 0.0 as capped_sum_file_size
+, 0.0 as sum_code_file_size
+, 0.0 as capped_sum_code_file_size
 
 , 0.0 as prev_touch_ago
 ,  avg(if(same_date_as_prev, duration, null)) as same_day_duration_avg
@@ -750,3 +925,84 @@ dp.repo_name = r.repo_name
 and
 dp.year = r.year
 ;
+
+
+
+drop table if exists general.dev_repo_year_length_properties;
+
+
+create table
+general.dev_repo_year_length_properties
+as
+select
+c.repo_name as repo_name
+, extract(year from min_commit_time) as year
+, creator_email as author_email
+, avg(size) as avg_file_size
+, avg(if(size > 180000, 180000, size)) as capped_avg_file_size
+, avg(if( c.extension in ('.bat', '.c', '.cc', '.coffee', '.cpp', '.cs', '.cxx', '.go',
+       '.groovy', '.hs', '.java', '.js', '.lua', '.m',
+       '.module', '.php', '.pl', '.pm', '.py', '.rb', '.s', '.scala',
+       '.sh', '.swift', '.tpl', '.twig'),size, null)) as avg_code_file_size
+, avg(if( c.extension in ('.bat', '.c', '.cc', '.coffee', '.cpp', '.cs', '.cxx', '.go',
+       '.groovy', '.hs', '.java', '.js', '.lua', '.m',
+       '.module', '.php', '.pl', '.pm', '.py', '.rb', '.s', '.scala',
+       '.sh', '.swift', '.tpl', '.twig')
+       , if(size > 180000, 180000, size)
+       , null)) as capped_avg_code_file_size
+
+, sum(size) as sum_file_size
+, sum(if(size > 180000, 180000, size)) as capped_sum_file_size
+, sum(if( c.extension in ('.bat', '.c', '.cc', '.coffee', '.cpp', '.cs', '.cxx', '.go',
+       '.groovy', '.hs', '.java', '.js', '.lua', '.m',
+       '.module', '.php', '.pl', '.pm', '.py', '.rb', '.s', '.scala',
+       '.sh', '.swift', '.tpl', '.twig'),size, null)) as sum_code_file_size
+, sum(if( c.extension in ('.bat', '.c', '.cc', '.coffee', '.cpp', '.cs', '.cxx', '.go',
+       '.groovy', '.hs', '.java', '.js', '.lua', '.m',
+       '.module', '.php', '.pl', '.pm', '.py', '.rb', '.s', '.scala',
+       '.sh', '.swift', '.tpl', '.twig')
+       , if(size > 180000, 180000, size)
+       , null)) as capped_sum_code_file_size
+
+from
+general.contents as c
+join
+general.file_properties as fp
+on
+c.repo_name = fp.repo_name
+and
+c.path = fp.file
+where
+authors = 1
+group by
+c.repo_name
+, extract(year from min_commit_time)
+, author_email
+;
+
+
+update general.developer_per_repo_profile_per_year as rp
+set
+avg_file_size = rl.avg_file_size
+, capped_avg_file_size = rl.capped_avg_file_size
+, avg_code_file_size = rl.avg_code_file_size
+, capped_avg_code_file_size = rl.capped_avg_code_file_size
+
+, sum_file_size = rl.sum_file_size
+, capped_sum_file_size = rl.capped_sum_file_size
+, sum_code_file_size = rl.sum_code_file_size
+, capped_sum_code_file_size = rl.capped_sum_code_file_size
+
+from
+general.dev_repo_year_length_properties as rl
+where
+rp.author_email = rl.author_email
+and
+rp.repo_name = rl.repo_name
+and
+rp.year = rl.year
+;
+
+drop table if exists general.dev_repo_year_length_properties;
+
+
