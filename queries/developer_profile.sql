@@ -282,7 +282,7 @@ author_email
 ;
 
 
-update general.repo_properties as rp
+update general.developer_profile as rp
 set
 avg_file_size = rl.avg_file_size
 , capped_avg_file_size = rl.capped_avg_file_size
@@ -295,7 +295,7 @@ avg_file_size = rl.avg_file_size
 , capped_sum_code_file_size = rl.capped_sum_code_file_size
 
 from
-general.developer_profile as rl
+general.dev_length_properties as rl
 where
 rp.author_email = rl.author_email
 ;
