@@ -62,8 +62,6 @@ p.repo_name
 
 drop table if exists general_ght.repo_profile;
 
-drop table if exists general_ght.repo_profile;
-# TODO - repo is no unique
 create table
 general_ght.repo_profile
 as
