@@ -180,6 +180,8 @@ join
 general_ght.enhanced_issues as ie
 on
 ie.repo_id = p.id
+and
+rpy.year = extract(year from ie.assigned_at )
 group by
 p.repo_name
 , rpy.year
@@ -228,6 +230,8 @@ join
 general_ght.enhanced_pull_requests as epr
 on
 p.id = epr.base_repo_id
+and
+rpy.year = extract(year from epr.created_at)
 group by
 p.repo_name
 , rpy.year
