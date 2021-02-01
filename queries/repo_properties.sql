@@ -1,3 +1,5 @@
+# Repository properties
+
 drop table if exists general.repo_properties_per_year;
 
 
@@ -30,6 +32,9 @@ repo_name as repo_name
     ,1.0*count(distinct case when is_cursing and parents = 1 then commit else null end)/
         count(distinct if(parents = 1, commit, null))
     , null) as cursing_rate
+
+, 1.0*count(distinct case when is_positive_sentiment then commit else null end)/count(distinct commit) as positive_sentiment_rate
+, 1.0*count(distinct case when is_negative_sentiment then commit else null end)/count(distinct commit) as negative_sentiment_rate
 
 , avg(if(not is_corrective and parents = 1, non_test_files, null)) as avg_coupling_size
 , avg(if(not is_corrective and parents = 1, code_non_test_files, null)) as avg_coupling_code_size
@@ -358,6 +363,9 @@ repo_name as repo_name
     ,1.0*count(distinct case when is_cursing and parents = 1 then commit else null end)/
         count(distinct if(parents = 1, commit, null))
     , null) as cursing_rate
+
+, 1.0*count(distinct case when is_positive_sentiment then commit else null end)/count(distinct commit) as positive_sentiment_rate
+, 1.0*count(distinct case when is_negative_sentiment then commit else null end)/count(distinct commit) as negative_sentiment_rate
 
 , avg(if(not is_corrective and parents = 1, non_test_files, null)) as avg_coupling_size
 , avg(if(not is_corrective and parents = 1, code_non_test_files, null)) as avg_coupling_code_size
