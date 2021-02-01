@@ -1,3 +1,4 @@
+# Repo productivity metrics
 drop table if exists general.repo_productivity_metrics;
 
 create table
