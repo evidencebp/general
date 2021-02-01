@@ -1,6 +1,8 @@
 # Collected data from GHTorrent:  https://bigquery.cloud.google.com/dataset/ghtorrent-bq:ght
 # Updated until 2016
 
+# GHT Fetch public data
+
 # get general into repos table (upload if needed)
 # drop table if exists general.repos;
 
