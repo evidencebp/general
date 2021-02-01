@@ -112,6 +112,8 @@ c.*
 , general.bq_English(message) > 0 as is_English
 , general.bq_refactor(message) > 0 as is_refactor
 , general.bq_core_cursing(message) > 0 as is_cursing
+, False as is_positive_sentiment
+, False as is_negative_sentiment
 # The values of the columns below will be overridden later
 , -1 as files
 , -1 as non_test_files
@@ -124,5 +126,22 @@ c.*
 from
 general.flat_commits as c
 ;
+
+update
+general.enhanced_commits
+set
+is_positive_sentiment = (general.bq_positive_sentiment(message) > 0)
+where
+true
+;
+
+update
+general.enhanced_commits
+set
+is_negative_sentiment = general.bq_negative_sentiment(message) > 0
+where
+true
+;
+
 
 drop table if exists general.flat_commits;
