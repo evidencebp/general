@@ -15,3 +15,4 @@
 # 6. Run effective_pull_requests.sql
 # 7. Run repo_properties.sql
 # 8. Run developer_matching.sql
+# 9. Run developer_profile.sql
