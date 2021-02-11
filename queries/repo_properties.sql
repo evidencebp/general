@@ -16,32 +16,24 @@ repo_name as repo_name
 , count(distinct commit) as commits
 , count(distinct if(parents = 1, commit, null)) as non_merge_commits
 , count(distinct case when is_corrective  then commit else null end) as corrective_commits
-, if(count(distinct if(parents = 1, commit, null)) > 0
-    ,1.0*count(distinct case when is_corrective and parents = 1 then commit else null end)/
-        count(distinct if(parents = 1, commit, null))
-    , null) as corrective_rate
-, if(count(distinct if(parents = 1, commit, null)) > 0
-    , general.bq_ccp_mle(1.0*count(distinct case when is_corrective  and parents = 1 then commit else null end)/
-        count(distinct if(parents = 1, commit, null)))
-    , null ) as ccp
+, 1.0*count(distinct if(is_corrective, commit, null))/count(distinct commit) as corrective_rate
+, general.bq_ccp_mle(1.0*count(distinct if(is_corrective, commit, null))/count(distinct commit)) as ccp
 
 , general.bq_refactor_mle(1.0*count(distinct case when is_refactor  then commit else null end)/count(distinct commit))
         as refactor_mle
 
-, if(count(distinct if(parents = 1, commit, null)) > 0
-    ,1.0*count(distinct case when is_cursing and parents = 1 then commit else null end)/
-        count(distinct if(parents = 1, commit, null))
-    , null) as cursing_rate
+, 1.0*count(distinct if(is_cursing, commit, null))/ count(distinct commit) as cursing_rate
 
 , 1.0*count(distinct case when is_positive_sentiment then commit else null end)/count(distinct commit) as positive_sentiment_rate
 , 1.0*count(distinct case when is_negative_sentiment then commit else null end)/count(distinct commit) as negative_sentiment_rate
 
-, avg(if(not is_corrective and parents = 1, non_test_files, null)) as avg_coupling_size
-, avg(if(not is_corrective and parents = 1, code_non_test_files, null)) as avg_coupling_code_size
-, avg(if(not is_corrective and parents = 1, if(non_test_files > 103 , 103 , non_test_files), null)) as avg_coupling_size_capped
-, avg(if(not is_corrective and parents = 1, if(code_non_test_files> 103 , 103 ,code_non_test_files), null)) as avg_coupling_code_size_capped
-, avg(if(not is_corrective and parents = 1, if(non_test_files > 103 , null , non_test_files), null)) as avg_coupling_size_cut
-, avg(if(not is_corrective and parents = 1, if(code_non_test_files> 103 , null ,code_non_test_files), null)) as avg_coupling_code_size_cut
+, avg(if(not is_corrective, non_test_files, null)) as avg_coupling_size
+, avg(if(not is_corrective, code_non_test_files, null)) as avg_coupling_code_size
+, avg(if(not is_corrective, if(non_test_files > 103 , 103 , non_test_files), null)) as avg_coupling_size_capped
+, avg(if(not is_corrective, if(code_non_test_files> 103 , 103 ,code_non_test_files), null)) as avg_coupling_code_size_capped
+, avg(if(not is_corrective, if(non_test_files > 103 , null , non_test_files), null)) as avg_coupling_size_cut
+, avg(if(not is_corrective, if(code_non_test_files> 103 , null ,code_non_test_files), null)) as avg_coupling_code_size_cut
+, avg(if(not is_corrective, if(code_non_test_files> 10 , null ,code_non_test_files), null)) as avg_coupling_code_size_cut10
 
 , count(distinct Author_email) as authors
 , max(Author_email) as Author_email # Meaningful only when authors=1
@@ -347,32 +339,24 @@ repo_name as repo_name
 , count(distinct commit) as commits
 , count(distinct if(parents = 1, commit, null)) as non_merge_commits
 , count(distinct case when is_corrective  then commit else null end) as corrective_commits
-, if(count(distinct if(parents = 1, commit, null)) > 0
-    ,1.0*count(distinct case when is_corrective and parents = 1 then commit else null end)/
-        count(distinct if(parents = 1, commit, null))
-    , null) as corrective_rate
-, if(count(distinct if(parents = 1, commit, null)) > 0
-    , general.bq_ccp_mle(1.0*count(distinct case when is_corrective  and parents = 1 then commit else null end)/
-        count(distinct if(parents = 1, commit, null)))
-    , null ) as ccp
+, 1.0*count(distinct if(is_corrective, commit, null))/count(distinct commit) as corrective_rate
+, general.bq_ccp_mle(1.0*count(distinct if(is_corrective, commit, null))/count(distinct commit)) as ccp
 
 , general.bq_refactor_mle(1.0*count(distinct case when is_refactor  then commit else null end)/count(distinct commit))
         as refactor_mle
 
-, if(count(distinct if(parents = 1, commit, null)) > 0
-    ,1.0*count(distinct case when is_cursing and parents = 1 then commit else null end)/
-        count(distinct if(parents = 1, commit, null))
-    , null) as cursing_rate
+, 1.0*count(distinct if(is_cursing, commit, null))/ count(distinct commit) as cursing_rate
 
 , 1.0*count(distinct case when is_positive_sentiment then commit else null end)/count(distinct commit) as positive_sentiment_rate
 , 1.0*count(distinct case when is_negative_sentiment then commit else null end)/count(distinct commit) as negative_sentiment_rate
 
-, avg(if(not is_corrective and parents = 1, non_test_files, null)) as avg_coupling_size
-, avg(if(not is_corrective and parents = 1, code_non_test_files, null)) as avg_coupling_code_size
-, avg(if(not is_corrective and parents = 1, if(non_test_files > 103 , 103 , non_test_files), null)) as avg_coupling_size_capped
-, avg(if(not is_corrective and parents = 1, if(code_non_test_files> 103 , 103 ,code_non_test_files), null)) as avg_coupling_code_size_capped
-, avg(if(not is_corrective and parents = 1, if(non_test_files > 103 , null , non_test_files), null)) as avg_coupling_size_cut
-, avg(if(not is_corrective and parents = 1, if(code_non_test_files> 103 , null ,code_non_test_files), null)) as avg_coupling_code_size_cut
+, avg(if(not is_corrective, non_test_files, null)) as avg_coupling_size
+, avg(if(not is_corrective, code_non_test_files, null)) as avg_coupling_code_size
+, avg(if(not is_corrective, if(non_test_files > 103 , 103 , non_test_files), null)) as avg_coupling_size_capped
+, avg(if(not is_corrective, if(code_non_test_files> 103 , 103 ,code_non_test_files), null)) as avg_coupling_code_size_capped
+, avg(if(not is_corrective, if(non_test_files > 103 , null , non_test_files), null)) as avg_coupling_size_cut
+, avg(if(not is_corrective, if(code_non_test_files> 103 , null ,code_non_test_files), null)) as avg_coupling_code_size_cut
+, avg(if(not is_corrective, if(code_non_test_files> 10 , null ,code_non_test_files), null)) as avg_coupling_code_size_cut10
 
 , count(distinct Author_email) as authors
 , max(Author_email) as Author_email # Meaningful only when authors=1
