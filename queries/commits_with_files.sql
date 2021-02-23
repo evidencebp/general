@@ -43,7 +43,7 @@ cfr.repo_name as repo_name
 ('.bat', '.c', '.cc', '.coffee', '.cpp', '.cs', '.cxx', '.go',
        '.groovy', '.hs', '.java', '.js', '.lua', '.m',
        '.module', '.php', '.pl', '.pm', '.py', '.rb', '.s', '.scala',
-       '.sh', '.swift', '.tpl', '.twig')
+       '.sh', '.swift', '.ts', '.tsx', '.tpl', '.twig')
 as code_extension
 , ec.commit_timestamp  as commit_timestamp
 , ec.is_corrective as is_corrective
