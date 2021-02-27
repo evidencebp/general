@@ -28,8 +28,8 @@ cf.repo_name as repo_name
 , avg(if(not cf.is_corrective, if(non_test_files > 103 , 103 , non_test_files), null)) as avg_coupling_size_capped
 , avg(if(not cf.is_corrective, if(code_non_test_files> 103 , 103 ,code_non_test_files), null)) as avg_coupling_code_size_capped
 , avg(if(not cf.is_corrective, if(non_test_files > 103 , null , non_test_files), null)) as avg_coupling_size_cut
-, avg(if(not cf.is_corrective, if(code_non_test_files> 103 , null ,code_non_test_files), null)) as avg_coupling_code_size_cut
-, avg(if(not cf.is_corrective, if(code_non_test_files> 10 , null ,code_non_test_files), null)) as avg_coupling_code_size_cut10
+, avg(if(not cf.is_corrective, if(code_non_test_files> 10 , null ,code_non_test_files), null)) as avg_coupling_code_size_cut
+#, avg(if(not cf.is_corrective, if(code_non_test_files> 10 , null ,code_non_test_files), null)) as avg_coupling_code_size_cut10
 
 , if(sum(if(files <= 103, files, null)) > 0
     , sum(if(files <= 103, files - non_test_files, null))/ sum(if(files <= 103, files, null))
@@ -130,8 +130,8 @@ cf.repo_name as repo_name
 , avg(if(not cf.is_corrective, if(non_test_files > 103 , 103 , non_test_files), null)) as avg_coupling_size_capped
 , avg(if(not cf.is_corrective, if(code_non_test_files> 103 , 103 ,code_non_test_files), null)) as avg_coupling_code_size_capped
 , avg(if(not cf.is_corrective, if(non_test_files > 103 , null , non_test_files), null)) as avg_coupling_size_cut
-, avg(if(not cf.is_corrective, if(code_non_test_files> 103 , null ,code_non_test_files), null)) as avg_coupling_code_size_cut
-, avg(if(not cf.is_corrective, if(code_non_test_files> 10 , null ,code_non_test_files), null)) as avg_coupling_code_size_cut10
+, avg(if(not cf.is_corrective, if(code_non_test_files> 10 , null ,code_non_test_files), null)) as avg_coupling_code_size_cut
+#, avg(if(not cf.is_corrective, if(code_non_test_files> 10 , null ,code_non_test_files), null)) as avg_coupling_code_size_cut10
 
 , if(sum(if(files <= 103, files, null)) > 0
     , sum(if(files <= 103, files - non_test_files, null))/ sum(if(files <= 103, files, null))
