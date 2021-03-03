@@ -94,3 +94,48 @@ testing.code_extension
 and
 pairs.testing_file is null
 ;
+
+select
+count(distinct concat(testing.repo_name, testing.file)) as testing_files
+, count(distinct if(pairs.testing_file is null, null, concat(testing.repo_name, testing.file))) as matched_testing_files
+, 1.0*count(distinct if(pairs.testing_file is null, null, concat(testing.repo_name, testing.file)))
+    /count(distinct concat(testing.repo_name, testing.file)) as match_ratio
+from
+general.file_properties as testing
+left join
+general.testing_pairs as pairs
+on
+testing.repo_name = pairs.repo_name
+and
+testing.file = pairs.testing_file
+where
+testing.is_test
+and
+testing.code_extension
+;
+
+select
+testing.repo_name as repo_name
+, count(distinct concat(testing.repo_name, testing.file)) as testing_files
+, count(distinct if(pairs.testing_file is null, null, concat(testing.repo_name, testing.file))) as matched_testing_files
+, 1.0*count(distinct if(pairs.testing_file is null, null, concat(testing.repo_name, testing.file)))
+    /count(distinct concat(testing.repo_name, testing.file)) as match_ratio
+from
+general.file_properties as testing
+left join
+general.testing_pairs as pairs
+on
+testing.repo_name = pairs.repo_name
+and
+testing.file = pairs.testing_file
+where
+testing.is_test
+and
+testing.code_extension
+group by
+testing.repo_name
+order by
+match_ratio
+;
+
+
