@@ -307,6 +307,34 @@ rp.author_email = rl.author_email
 
 drop table if exists general.dev_length_properties;
 
+#drop table if exists general.author_owned_files_revert_time;
+
+#create table
+#general.author_owned_files_revert_time
+#as
+#select
+#cf.Author_email
+#, avg(minutes_to_revert) as minutes_to_revert
+#, count(distinct cf.commit) as commits
+#from
+#general.file_properties as fp
+#join
+#general.commits_files as cf
+#on
+#fp.repo_name = cf.repo_name
+#and
+#fp.file = cf.file
+#join
+#general.reverted_commits as rc
+#on
+#cf.repo_name = rc.repo_name
+#and
+#cf.commit = rc.reverting_commit
+#where
+#authors = 1
+#group by
+#cf.Author_email
+#;
 
 ##### Creating developer_per_repo_profile
 
