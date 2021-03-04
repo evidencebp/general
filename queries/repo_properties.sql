@@ -99,6 +99,8 @@ as non_corrective_multiline_message_ratio
 
 , -1 as stars
 , '' as detection_efficiency
+, -1.0 as minutes_to_revert
+, -1.0 as reverted_ratio
 
 , 0.0 as avg_file_size # Note - this is the current size of files created in this year
 , 0.0 as capped_avg_file_size
@@ -322,6 +324,53 @@ rp.year = rly.year
 
 drop table if exists general.repo_length_properties_per_year;
 
+
+
+drop table if exists general.repo_revert_time_per_year;
+
+create table
+general.repo_revert_time_per_year
+as
+select
+extract(year from reverted_commit_timestamp	) as year
+, repo_name
+, avg(minutes_to_revert) as minutes_to_revert
+, count(distinct reverted_commit) as reverted_commits
+from
+general.reverted_commits as reverted
+group by
+year
+, repo_name
+;
+
+update general.repo_properties_per_year as rp
+set
+minutes_to_revert = aux.minutes_to_revert
+, reverted_ratio = 1.0*aux.reverted_commits/rp.commits
+from
+general.repo_revert_time_per_year as aux
+where
+rp.repo_name = aux.repo_name
+and
+rp.year = aux.year
+;
+
+update general.repo_properties_per_year as rp
+set minutes_to_revert = Null
+where
+minutes_to_revert = -1.0
+;
+
+update general.repo_properties_per_year as rp
+set reverted_ratio = Null
+where
+reverted_ratio = -1.0
+;
+
+drop table if exists general.repo_revert_time_per_year;
+
+
+
 ##### Create Repo Properties
 
 drop table if exists general.repo_properties;
@@ -428,6 +477,8 @@ as non_corrective_multiline_message_ratio
 , False  Is_Company
 
 , '' as detection_efficiency
+, -1.0 as minutes_to_revert
+, -1.0 as reverted_ratio
 
 , 0.0 as avg_file_size
 , 0.0 as capped_avg_file_size
@@ -611,3 +662,43 @@ rp.repo_name = rl.repo_name
 ;
 
 drop table if exists general.repo_length_properties;
+
+
+drop table if exists general.repo_revert_time;
+
+create table
+general.repo_revert_time
+as
+select
+repo_name
+, avg(minutes_to_revert) as minutes_to_revert
+, count(distinct reverted_commit) as reverted_commits
+from
+general.reverted_commits as reverted
+group by
+repo_name
+;
+
+update general.repo_properties as rp
+set
+minutes_to_revert = aux.minutes_to_revert
+, reverted_ratio = 1.0*aux.reverted_commits/rp.commits
+from
+general.repo_revert_time as aux
+where
+rp.repo_name = aux.repo_name
+;
+
+update general.repo_properties as rp
+set minutes_to_revert = Null
+where
+minutes_to_revert = -1.0
+;
+
+update general.repo_properties as rp
+set reverted_ratio = Null
+where
+reverted_ratio = -1.0
+;
+
+drop table if exists general.repo_revert_time;
