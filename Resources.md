@@ -25,6 +25,5 @@ url = {https://www.sciencedirect.com/science/article/pii/S016412122100008X},
 volume = {175},
 year = {2021}
 }
-}
 ```
 
