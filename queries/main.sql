@@ -10,6 +10,7 @@
 #  Run testing_pairs.sql
 #  Run reverted_commits.sql
 #  Run file_properties.sql
+#  Run file_properties_per_year.sql
 #  Run repo_properties.sql
 #  Run developer_properties.sql
 #  Run repo_productivity_metrics.sql

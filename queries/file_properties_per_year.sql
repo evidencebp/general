@@ -1,17 +1,14 @@
-# file_properties.sql
-
-
-drop table if exists general.file_properties;
+# File properties per year
+drop table if exists general.file_properties_per_year;
 
 
 create table
-general.file_properties
+general.file_properties_per_year
 as
 select
 cf.repo_name as repo_name
 , file
-, '' as creator_name
-, '' as creator_email
+, extract( year from cf.commit_month) as year
 , min(cf.commit_timestamp) as min_commit_time
 , max(cf.commit_timestamp) as max_commit_time
 , min(cf.commit) as min_commit
@@ -38,10 +35,10 @@ cf.repo_name as repo_name
     , sum(if(code_files <= 103, code_files - code_non_test_files, null))/ sum(if(code_files <= 103, code_files, null))
     , null) as test_code_file_ratio_cut
 
+
 , count(distinct cf.Author_email) as authors
 , max(cf.Author_email) as Author_email # Meaningful only when authors=1
 , min(ec.commit_month) as commit_month
-
 , avg(if(same_date_as_prev, duration, null)) as same_day_duration_avg
 
 , 0.0 as prev_touch_ago
@@ -77,7 +74,8 @@ as no_test_refactor_rate
 , -1.0 as testing_involved_prob
 , -1.0 as corrective_testing_involved_prob
 , -1.0 as refactor_testing_involved_prob
-, 0.0 as abs_content_ratio
+, null as abs_content_ratio # We have data only in head, not per year
+
 
 from
 general.commits_files as cf
@@ -85,65 +83,22 @@ join
 general.enhanced_commits as ec
 on
 cf.commit = ec.commit and cf.repo_name = ec.repo_name
+and extract( year from cf.commit_month) =  extract( year from ec.commit_month)
 group by
 repo_name
 , file
-;
-
-drop table if exists general.file_first_commit;
-
-
-create table
-general.file_first_commit
-as
-select
-fp.repo_name as repo_name
-, fp.file as file
-, min(fp.min_commit_time) as min_commit_time
-, min(cf.author_name) as creator_name
-, min(cf.author_email) as creator_email
-, count(distinct commit) as commits # For uniqueness checking
-, count(distinct cf.author_email) as authors # For uniqueness checking
-from
-general.file_properties as fp
-join
-general.commits_files as cf
-on
-fp.repo_name = cf.repo_name
-and
-fp.file = cf.file
-and
-fp.min_commit_time = cf.commit_timestamp
-group by
-fp.repo_name
-, fp.file
+, year
 ;
 
 
-update general.file_properties as fp
-set creator_name = ffc.creator_name, creator_email = ffc.creator_email
-from
-general.file_first_commit as ffc
-where
-fp.repo_name = ffc.repo_name
-and
-fp.file = ffc.file
-and
-fp.min_commit_time = ffc.min_commit_time
-and
-ffc.authors = 1 # For uniqueness checking
-;
+drop table if exists general.file_testing_pair_involvement_per_year;
 
-drop table if exists general.file_first_commit;
-
-
-drop table if exists general.file_testing_pair_involvement;
-
-create table general.file_testing_pair_involvement
+create table general.file_testing_pair_involvement_per_year
 as
 select
 repo_name
 , file
+, extract( year from commit_month) as year
 , avg(if(test_involved, 1,0) ) as testing_involved_prob
 , if( sum(if(is_corrective, 1,0)) > 0
     , 1.0*sum(if(test_involved and is_corrective, 1,0) )/sum(if(is_corrective, 1,0))
@@ -156,43 +111,21 @@ general.testing_pairs_commits
 group by
 repo_name
 , file
+, year
 ;
 
-update general.file_properties as fp
+update general.file_properties_per_year as fp
 set testing_involved_prob = aux.testing_involved_prob
 , corrective_testing_involved_prob = aux.corrective_testing_involved_prob
 , refactor_testing_involved_prob = aux.refactor_testing_involved_prob
 from
-general.file_testing_pair_involvement as aux
+general.file_testing_pair_involvement_per_year as aux
 where
 fp.repo_name = aux.repo_name
 and
 fp.file = aux.file
-;
-
-drop table if exists general.file_testing_pair_involvement;
-
-
-drop table if exists general.file_content_abstraction;
-
-create table general.file_content_abstraction
-as
-SELECT
-cnt.repo_name as repo_name
-, path as file
- FROM
- general.contents as cnt
-WHERE
-general.bq_abstraction(lower(content)) > 0
-;
-
-update general.file_properties as fp
-set abs_content_ratio = 1.0
-from
-general.file_content_abstraction as aux
-where
-fp.repo_name = aux.repo_name
 and
-fp.file = aux.file
+fp.year = aux.year
 ;
 
+drop table if exists general.file_testing_pair_involvement_per_year;
