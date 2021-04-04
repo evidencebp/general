@@ -125,6 +125,40 @@ as non_corrective_multiline_message_ratio
 , 0.0 as prev_touch_ago
 ,  avg(if(same_date_as_prev, duration, null)) as same_day_duration_avg
 
+# Abstraction
+, if (sum(if(ec.is_corrective, 1,0 )) > 0
+, 1.0*sum(if( code_non_test_files = 1 and ec.is_corrective, 1,0 ))/sum(if(ec.is_corrective, 1,0 ))
+, null)
+as one_file_fix_rate
+, if (sum(if(ec.is_refactor, 1,0 )) > 0
+, 1.0*sum(if( code_non_test_files = 1 and ec.is_refactor, 1,0 ))/sum(if(ec.is_refactor, 1,0 ))
+, null)
+as one_file_refactor_rate
+
+, if(sum(if((code_non_test_files = 1 and code_files = 2 ) or code_files=1, 1,0 )) > 0
+    , 1.0*sum(if(code_files=1, 1,0 ))/sum(if((code_non_test_files = 1 and code_files = 2 ) or code_files=1, 1,0 ))
+    , null)
+as test_usage_rate
+
+, if(sum(if(ec.is_refactor and ((code_non_test_files = 1 and code_files = 2 ) or code_files=1), 1,0 )) > 0
+    , 1.0*sum(if(ec.is_refactor and code_files=1, 1,0 ))
+        /sum(if(ec.is_refactor and ((code_non_test_files = 1 and code_files = 2 ) or code_files=1), 1,0 ))
+    , null)
+as test_usage_in_refactor_rate
+
+, if(sum(if(ec.is_refactor, 1,0 )) > 0
+    , 1.0*sum(if( code_non_test_files = code_files and ec.is_refactor, 1,0 ))/sum(if(ec.is_refactor, 1,0 ))
+    , null )
+as no_test_refactor_rate
+, sum(if(general.bq_abstraction(lower(message)) > 0, 1, 0)) as textual_abstraction_commits
+, 1.0*sum(if(general.bq_abstraction(lower(message)) > 0, 1, 0))/count(*) as textual_abstraction_commits_rate
+
+, -1.0 as testing_involved_prob
+, -1.0 as corrective_testing_involved_prob
+, -1.0 as refactor_testing_involved_prob
+, null as abs_content_ratio
+
+
 # Duration in project
 # Join time relative to project creation
 # Percent of effective refactors
@@ -336,6 +370,38 @@ drop table if exists general.dev_length_properties;
 #cf.Author_email
 #;
 
+
+drop table if exists general.dev_testing_pair_involvement;
+
+create table general.dev_testing_pair_involvement
+as
+select
+author_email
+, avg(if(test_involved, 1,0) ) as testing_involved_prob
+, if( sum(if(is_corrective, 1,0)) > 0
+    , 1.0*sum(if(test_involved and is_corrective, 1,0) )/sum(if(is_corrective, 1,0))
+    , null) as corrective_testing_involved_prob
+, if( sum(if(is_refactor, 1,0)) > 0
+    , 1.0*sum(if(test_involved and is_refactor, 1,0) )/sum(if(is_refactor, 1,0))
+    , null) as refactor_testing_involved_prob
+from
+general.testing_pairs_commits
+group by
+author_email
+;
+
+update general.developer_profile as dp
+set testing_involved_prob = aux.testing_involved_prob
+, corrective_testing_involved_prob = aux.corrective_testing_involved_prob
+, refactor_testing_involved_prob = aux.refactor_testing_involved_prob
+from
+general.dev_testing_pair_involvement as aux
+where
+dp.author_email = aux.author_email
+;
+
+drop table if exists general.dev_testing_pair_involvement;
+
 ##### Creating developer_per_repo_profile
 
 create table
@@ -462,6 +528,40 @@ as non_corrective_multiline_message_ratio
 
 , 0.0 as prev_touch_ago
 ,  avg(if(same_date_as_prev, duration, null)) as same_day_duration_avg
+
+# Abstraction
+, if (sum(if(ec.is_corrective, 1,0 )) > 0
+, 1.0*sum(if( code_non_test_files = 1 and ec.is_corrective, 1,0 ))/sum(if(ec.is_corrective, 1,0 ))
+, null)
+as one_file_fix_rate
+, if (sum(if(ec.is_refactor, 1,0 )) > 0
+, 1.0*sum(if( code_non_test_files = 1 and ec.is_refactor, 1,0 ))/sum(if(ec.is_refactor, 1,0 ))
+, null)
+as one_file_refactor_rate
+
+, if(sum(if((code_non_test_files = 1 and code_files = 2 ) or code_files=1, 1,0 )) > 0
+    , 1.0*sum(if(code_files=1, 1,0 ))/sum(if((code_non_test_files = 1 and code_files = 2 ) or code_files=1, 1,0 ))
+    , null)
+as test_usage_rate
+
+, if(sum(if(ec.is_refactor and ((code_non_test_files = 1 and code_files = 2 ) or code_files=1), 1,0 )) > 0
+    , 1.0*sum(if(ec.is_refactor and code_files=1, 1,0 ))
+        /sum(if(ec.is_refactor and ((code_non_test_files = 1 and code_files = 2 ) or code_files=1), 1,0 ))
+    , null)
+as test_usage_in_refactor_rate
+
+, if(sum(if(ec.is_refactor, 1,0 )) > 0
+    , 1.0*sum(if( code_non_test_files = code_files and ec.is_refactor, 1,0 ))/sum(if(ec.is_refactor, 1,0 ))
+    , null )
+as no_test_refactor_rate
+, sum(if(general.bq_abstraction(lower(message)) > 0, 1, 0)) as textual_abstraction_commits
+, 1.0*sum(if(general.bq_abstraction(lower(message)) > 0, 1, 0))/count(*) as textual_abstraction_commits_rate
+
+, -1.0 as testing_involved_prob
+, -1.0 as corrective_testing_involved_prob
+, -1.0 as refactor_testing_involved_prob
+, null as abs_content_ratio
+
 
 # Duration in project
 # Join time relative to project creation
@@ -683,6 +783,42 @@ rp.repo_name = rl.repo_name
 
 drop table if exists general.dev_repo_length_properties;
 
+
+drop table if exists general.dev_per_repo_testing_pair_involvement;
+
+create table general.dev_per_repo_testing_pair_involvement
+as
+select
+repo_name
+, author_email
+, avg(if(test_involved, 1,0) ) as testing_involved_prob
+, if( sum(if(is_corrective, 1,0)) > 0
+    , 1.0*sum(if(test_involved and is_corrective, 1,0) )/sum(if(is_corrective, 1,0))
+    , null) as corrective_testing_involved_prob
+, if( sum(if(is_refactor, 1,0)) > 0
+    , 1.0*sum(if(test_involved and is_refactor, 1,0) )/sum(if(is_refactor, 1,0))
+    , null) as refactor_testing_involved_prob
+from
+general.testing_pairs_commits
+group by
+repo_name
+, author_email
+;
+
+update general.developer_per_repo_profile as dp
+set testing_involved_prob = aux.testing_involved_prob
+, corrective_testing_involved_prob = aux.corrective_testing_involved_prob
+, refactor_testing_involved_prob = aux.refactor_testing_involved_prob
+from
+general.dev_per_repo_testing_pair_involvement as aux
+where
+dp.author_email = aux.author_email
+and
+dp.repo_name = aux.repo_name
+;
+
+drop table if exists general.dev_per_repo_testing_pair_involvement;
+
 ##### Creating developer_per_repo_profile_per_year
 
 drop table if exists general.developer_per_repo_profile_per_year;
@@ -810,6 +946,39 @@ as non_corrective_multiline_message_ratio
 
 , 0.0 as prev_touch_ago
 ,  avg(if(same_date_as_prev, duration, null)) as same_day_duration_avg
+
+# Abstraction
+, if (sum(if(ec.is_corrective, 1,0 )) > 0
+, 1.0*sum(if( code_non_test_files = 1 and ec.is_corrective, 1,0 ))/sum(if(ec.is_corrective, 1,0 ))
+, null)
+as one_file_fix_rate
+, if (sum(if(ec.is_refactor, 1,0 )) > 0
+, 1.0*sum(if( code_non_test_files = 1 and ec.is_refactor, 1,0 ))/sum(if(ec.is_refactor, 1,0 ))
+, null)
+as one_file_refactor_rate
+
+, if(sum(if((code_non_test_files = 1 and code_files = 2 ) or code_files=1, 1,0 )) > 0
+    , 1.0*sum(if(code_files=1, 1,0 ))/sum(if((code_non_test_files = 1 and code_files = 2 ) or code_files=1, 1,0 ))
+    , null)
+as test_usage_rate
+
+, if(sum(if(ec.is_refactor and ((code_non_test_files = 1 and code_files = 2 ) or code_files=1), 1,0 )) > 0
+    , 1.0*sum(if(ec.is_refactor and code_files=1, 1,0 ))
+        /sum(if(ec.is_refactor and ((code_non_test_files = 1 and code_files = 2 ) or code_files=1), 1,0 ))
+    , null)
+as test_usage_in_refactor_rate
+
+, if(sum(if(ec.is_refactor, 1,0 )) > 0
+    , 1.0*sum(if( code_non_test_files = code_files and ec.is_refactor, 1,0 ))/sum(if(ec.is_refactor, 1,0 ))
+    , null )
+as no_test_refactor_rate
+, sum(if(general.bq_abstraction(lower(message)) > 0, 1, 0)) as textual_abstraction_commits
+, 1.0*sum(if(general.bq_abstraction(lower(message)) > 0, 1, 0))/count(*) as textual_abstraction_commits_rate
+
+, -1.0 as testing_involved_prob
+, -1.0 as corrective_testing_involved_prob
+, -1.0 as refactor_testing_involved_prob
+, 0.0 as abs_content_ratio
 
 # Duration in project
 # Join time relative to project creation
@@ -1050,3 +1219,42 @@ rp.year = rl.year
 drop table if exists general.dev_repo_year_length_properties;
 
 
+
+drop table if exists general.dev_per_repo_testing_pair_involvement_per_year;
+
+create table general.dev_per_repo_testing_pair_involvement_per_year
+as
+select
+repo_name
+, author_email
+, extract(year from commit_timestamp) as year
+, avg(if(test_involved, 1,0) ) as testing_involved_prob
+, if( sum(if(is_corrective, 1,0)) > 0
+    , 1.0*sum(if(test_involved and is_corrective, 1,0) )/sum(if(is_corrective, 1,0))
+    , null) as corrective_testing_involved_prob
+, if( sum(if(is_refactor, 1,0)) > 0
+    , 1.0*sum(if(test_involved and is_refactor, 1,0) )/sum(if(is_refactor, 1,0))
+    , null) as refactor_testing_involved_prob
+from
+general.testing_pairs_commits
+group by
+repo_name
+, author_email
+, year
+;
+
+update general.developer_per_repo_profile_per_year as dp
+set testing_involved_prob = aux.testing_involved_prob
+, corrective_testing_involved_prob = aux.corrective_testing_involved_prob
+, refactor_testing_involved_prob = aux.refactor_testing_involved_prob
+from
+general.dev_per_repo_testing_pair_involvement_per_year as aux
+where
+dp.author_email = aux.author_email
+and
+dp.repo_name = aux.repo_name
+and
+dp.year = aux.year
+;
+
+drop table if exists general.dev_per_repo_testing_pair_involvement_per_year;
