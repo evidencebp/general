@@ -81,6 +81,31 @@ SELECT file
 FROM tab as testing
 ;
 
+drop table if exists general.testing_pairs_commits;
+
+create table general.testing_pairs_commits
+as
+select
+cf.*
+, cf_test_lookup.file is not null as test_involved
+from
+general.commits_files as cf
+join
+general.testing_pairs as pair
+on
+cf.repo_name = pair.repo_name
+and
+cf.file = pair.tested_file
+left join
+general.commits_files as cf_test_lookup
+on
+cf.repo_name = cf_test_lookup.repo_name
+and
+cf.commit = cf_test_lookup.commit
+and
+pair.testing_file = cf_test_lookup.file
+;
+
 # Hunting false negatives
 select
 testing.repo_name
