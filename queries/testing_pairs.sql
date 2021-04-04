@@ -1,3 +1,10 @@
+# Testing pairs
+
+# TODO - testing pairs uses file properties which in turn uses teting pairs.
+# It works since it uses a prior version.
+# Break the cycle by using general.files instead.
+# Properties are not used anyway
+
 drop table if exists general.testing_pairs;
 
 create table
