@@ -1,6 +1,6 @@
 The following directory contains a data set of 526,712 commits dealing with performance.
 
-The commits are identified using a linguistic model [linguistic commit classification](https://github.com/evidencebp/commit-classification).
+The commits are identified using a linguistic model for [commit classification](https://github.com/evidencebp/commit-classification).
 
 The [model](https://github.com/evidencebp/commit-classification/blob/master/performance_model.py) is used is of commit fea1e67
 
