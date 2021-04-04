@@ -7,3 +7,5 @@ The [model](https://github.com/evidencebp/commit-classification/blob/master/perf
 See the [labeling protocol](https://github.com/evidencebp/commit-classification/blob/master/labeling_protocols/perfective_protocol.md) used.
 
 See here the [data set creation](https://github.com/evidencebp/commit-classification/blob/master/queries/performance_samples.sql).
+
+For description of the data set creation see [The Corrective Commit Probability Code Quality Metric](https://arxiv.org/abs/2007.10912).
