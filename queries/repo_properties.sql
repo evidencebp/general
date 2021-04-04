@@ -117,6 +117,39 @@ as non_corrective_multiline_message_ratio
 
 , 0.0 as prev_touch_ago
 
+# Abstraction
+, if (sum(if(ec.is_corrective, 1,0 )) > 0
+, 1.0*sum(if( code_non_test_files = 1 and ec.is_corrective, 1,0 ))/sum(if(ec.is_corrective, 1,0 ))
+, null)
+as one_file_fix_rate
+, if (sum(if(ec.is_refactor, 1,0 )) > 0
+, 1.0*sum(if( code_non_test_files = 1 and ec.is_refactor, 1,0 ))/sum(if(ec.is_refactor, 1,0 ))
+, null)
+as one_file_refactor_rate
+
+, if(sum(if((code_non_test_files = 1 and code_files = 2 ) or code_files=1, 1,0 )) > 0
+    , 1.0*sum(if(code_files=1, 1,0 ))/sum(if((code_non_test_files = 1 and code_files = 2 ) or code_files=1, 1,0 ))
+    , null)
+as test_usage_rate
+
+, if(sum(if(ec.is_refactor and ((code_non_test_files = 1 and code_files = 2 ) or code_files=1), 1,0 )) > 0
+    , 1.0*sum(if(ec.is_refactor and code_files=1, 1,0 ))
+        /sum(if(ec.is_refactor and ((code_non_test_files = 1 and code_files = 2 ) or code_files=1), 1,0 ))
+    , null)
+as test_usage_in_refactor_rate
+
+, if(sum(if(ec.is_refactor, 1,0 )) > 0
+    , 1.0*sum(if( code_non_test_files = code_files and ec.is_refactor, 1,0 ))/sum(if(ec.is_refactor, 1,0 ))
+    , null )
+as no_test_refactor_rate
+, sum(if(general.bq_abstraction(lower(message)) > 0, 1, 0)) as textual_abstraction_commits
+, 1.0*sum(if(general.bq_abstraction(lower(message)) > 0, 1, 0))/count(*) as textual_abstraction_commits_rate
+
+, -1.0 as testing_involved_prob
+, -1.0 as corrective_testing_involved_prob
+, -1.0 as refactor_testing_involved_prob
+, 0.0 as abs_content_ratio
+
 from
 general.enhanced_commits as ec
 group by
@@ -369,6 +402,40 @@ reverted_ratio = -1.0
 
 drop table if exists general.repo_revert_time_per_year;
 
+drop table if exists general.repo_testing_pair_involvement_per_year;
+
+create table general.repo_testing_pair_involvement_per_year
+as
+select
+repo_name
+, extract( year from commit_month) as year
+, avg(if(test_involved, 1,0) ) as testing_involved_prob
+, if( sum(if(is_corrective, 1,0)) > 0
+    , 1.0*sum(if(test_involved and is_corrective, 1,0) )/sum(if(is_corrective, 1,0))
+    , null) as corrective_testing_involved_prob
+, if( sum(if(is_refactor, 1,0)) > 0
+    , 1.0*sum(if(test_involved and is_refactor, 1,0) )/sum(if(is_refactor, 1,0))
+    , null) as refactor_testing_involved_prob
+from
+general.testing_pairs_commits
+group by
+repo_name
+, year
+;
+
+update general.repo_properties_per_year as rp
+set testing_involved_prob = aux.testing_involved_prob
+, corrective_testing_involved_prob = aux.corrective_testing_involved_prob
+, refactor_testing_involved_prob = aux.refactor_testing_involved_prob
+from
+general.repo_testing_pair_involvement_per_year as aux
+where
+rp.repo_name = aux.repo_name
+and
+rp.year = aux.year
+;
+
+drop table if exists general.repo_testing_pair_involvement_per_year;
 
 
 ##### Create Repo Properties
@@ -495,6 +562,39 @@ as non_corrective_multiline_message_ratio
 , -1.0 as retention_prob
 
 , 0.0 as prev_touch_ago
+
+# Abstraction
+, if (sum(if(ec.is_corrective, 1,0 )) > 0
+, 1.0*sum(if( code_non_test_files = 1 and ec.is_corrective, 1,0 ))/sum(if(ec.is_corrective, 1,0 ))
+, null)
+as one_file_fix_rate
+, if (sum(if(ec.is_refactor, 1,0 )) > 0
+, 1.0*sum(if( code_non_test_files = 1 and ec.is_refactor, 1,0 ))/sum(if(ec.is_refactor, 1,0 ))
+, null)
+as one_file_refactor_rate
+
+, if(sum(if((code_non_test_files = 1 and code_files = 2 ) or code_files=1, 1,0 )) > 0
+    , 1.0*sum(if(code_files=1, 1,0 ))/sum(if((code_non_test_files = 1 and code_files = 2 ) or code_files=1, 1,0 ))
+    , null)
+as test_usage_rate
+
+, if(sum(if(ec.is_refactor and ((code_non_test_files = 1 and code_files = 2 ) or code_files=1), 1,0 )) > 0
+    , 1.0*sum(if(ec.is_refactor and code_files=1, 1,0 ))
+        /sum(if(ec.is_refactor and ((code_non_test_files = 1 and code_files = 2 ) or code_files=1), 1,0 ))
+    , null)
+as test_usage_in_refactor_rate
+
+, if(sum(if(ec.is_refactor, 1,0 )) > 0
+    , 1.0*sum(if( code_non_test_files = code_files and ec.is_refactor, 1,0 ))/sum(if(ec.is_refactor, 1,0 ))
+    , null )
+as no_test_refactor_rate
+, sum(if(general.bq_abstraction(lower(message)) > 0, 1, 0)) as textual_abstraction_commits
+, 1.0*sum(if(general.bq_abstraction(lower(message)) > 0, 1, 0))/count(*) as textual_abstraction_commits_rate
+
+, -1.0 as testing_involved_prob
+, -1.0 as corrective_testing_involved_prob
+, -1.0 as refactor_testing_involved_prob
+, 0.0 as abs_content_ratio
 
 from
 general.enhanced_commits as ec
@@ -702,3 +802,57 @@ reverted_ratio = -1.0
 ;
 
 drop table if exists general.repo_revert_time;
+
+drop table if exists general.repo_testing_pair_involvement;
+
+create table general.repo_testing_pair_involvement
+as
+select
+repo_name
+, avg(if(test_involved, 1,0) ) as testing_involved_prob
+, if( sum(if(is_corrective, 1,0)) > 0
+    , 1.0*sum(if(test_involved and is_corrective, 1,0) )/sum(if(is_corrective, 1,0))
+    , null) as corrective_testing_involved_prob
+, if( sum(if(is_refactor, 1,0)) > 0
+    , 1.0*sum(if(test_involved and is_refactor, 1,0) )/sum(if(is_refactor, 1,0))
+    , null) as refactor_testing_involved_prob
+from
+general.testing_pairs_commits
+group by
+repo_name
+;
+
+update general.repo_properties as rp
+set testing_involved_prob = aux.testing_involved_prob
+, corrective_testing_involved_prob = aux.corrective_testing_involved_prob
+, refactor_testing_involved_prob = aux.refactor_testing_involved_prob
+from
+general.repo_testing_pair_involvement as aux
+where
+rp.repo_name = aux.repo_name
+;
+
+drop table if exists general.repo_testing_pair_involvement;
+
+drop table if exists general.repo_content_abstraction;
+
+create table general.repo_content_abstraction
+as
+SELECT
+cnt.repo_name as repo_name
+, 1.0*count(distinct if(general.bq_abstraction(lower(content)) > 0, path, null))/count(distinct path) as abs_content_ratio
+ FROM
+ general.contents as cnt
+group by
+repo_name
+;
+
+update general.repo_properties as rp
+set abs_content_ratio = aux.abs_content_ratio
+from
+general.repo_content_abstraction as aux
+where
+rp.repo_name = aux.repo_name
+;
+
+drop table if exists general.repo_content_abstraction;
