@@ -41,8 +41,8 @@ raw.repo_name = reverted.repo_name
 Select
 stars >= 7481 as is_popular
 , count(*) as projects
-, avg(minutes_to_revert) as minutes_to_revert
-, avg(minutes_to_revert/60/24) as days_to_revert
+, avg(reverted.minutes_to_revert) as minutes_to_revert
+, avg(reverted.minutes_to_revert/60/24) as days_to_revert
 from
 general.repo_properties as r
 join
@@ -59,8 +59,8 @@ is_popular
 select
 tests_presence <= 0.01 as lacking_tests
 , count(*) as projects
-, avg(minutes_to_revert) as minutes_to_revert
-, avg(minutes_to_revert/60/24) as days_to_revert
+, avg(reverted.minutes_to_revert) as minutes_to_revert
+, avg(reverted.minutes_to_revert/60/24) as days_to_revert
 from
 general.repo_properties as r
 join
