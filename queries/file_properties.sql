@@ -79,6 +79,8 @@ as no_test_refactor_rate
 , -1.0 as refactor_testing_involved_prob
 , 0.0 as abs_content_ratio
 
+, -1.0 as size
+
 from
 general.commits_files as cf
 join
@@ -196,3 +198,12 @@ and
 fp.file = aux.file
 ;
 
+update general.file_properties as fp
+set fp.size = aux.size
+from
+general.contents as aux
+where
+fp.repo_name = aux.repo_name
+and
+fp.file = aux.path
+;
