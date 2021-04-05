@@ -12,6 +12,7 @@
 #  Run file_properties.sql
 #  Run file_properties_per_year.sql
 #  Run repo_properties.sql
+#  Run repo_properties_per_year.sql
 #  Run developer_properties.sql
 #  Run repo_productivity_metrics.sql
 #  Run churn_and_onboarding.sql
