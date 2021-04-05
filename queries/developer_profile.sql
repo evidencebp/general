@@ -157,6 +157,8 @@ as no_test_refactor_rate
 , -1.0 as refactor_testing_involved_prob
 , null as abs_content_ratio
 
+, -1.0 as minutes_to_revert
+, -1.0 as reverted_ratio
 
 # Duration in project
 # Join time relative to project creation
@@ -334,36 +336,57 @@ rp.author_email = rl.author_email
 
 drop table if exists general.dev_length_properties;
 
-#drop table if exists general.author_owned_files_revert_time;
+drop table if exists general.author_owned_files_revert_time;
 
-#create table
-#general.author_owned_files_revert_time
-#as
-#select
-#cf.Author_email
-#, avg(minutes_to_revert) as minutes_to_revert
-#, count(distinct cf.commit) as commits
-#from
-#general.file_properties as fp
-#join
-#general.commits_files as cf
-#on
-#fp.repo_name = cf.repo_name
-#and
-#fp.file = cf.file
-#join
-#general.reverted_commits as rc
-#on
-#cf.repo_name = rc.repo_name
-#and
-#cf.commit = rc.reverting_commit
-#where
-#authors = 1
-#group by
-#cf.Author_email
-#;
+create table
+general.author_owned_files_revert_time
+as
+select
+cf.Author_email
+, avg(minutes_to_revert) as minutes_to_revert
+, count(distinct cf.commit) as reverted_commits
+from
+general.file_properties as fp
+join
+general.commits_files as cf
+on
+fp.repo_name = cf.repo_name
+and
+fp.file = cf.file
+join
+general.reverted_commits as rc
+on
+cf.repo_name = rc.repo_name
+and
+cf.commit = rc.reverting_commit
+where
+authors = 1
+group by
+cf.Author_email
+;
 
 
+update general.developer_profile as rp
+set
+minutes_to_revert = aux.minutes_to_revert
+, reverted_ratio = 1.0*aux.reverted_commits/rp.commits
+from
+general.author_owned_files_revert_time as aux
+where
+rp.Author_email = aux.Author_email
+;
+
+update general.developer_profile as rp
+set minutes_to_revert = Null
+where
+minutes_to_revert = -1.0
+;
+
+update general.developer_profile as rp
+set reverted_ratio = Null
+where
+reverted_ratio = -1.0
+;
 drop table if exists general.dev_testing_pair_involvement;
 
 create table general.dev_testing_pair_involvement
