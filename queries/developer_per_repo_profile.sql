@@ -1,5 +1,7 @@
 ##### Creating developer_per_repo_profile
 
+drop table if exists general.developer_per_repo_profile;
+
 create table
 general.developer_per_repo_profile
 as
@@ -43,7 +45,6 @@ repo_name
 , avg(if(not is_corrective, if(code_non_test_files> 103 , 103 ,code_non_test_files), null)) as avg_coupling_code_size_capped
 , avg(if(not is_corrective, if(non_test_files > 103 , null , non_test_files), null)) as avg_coupling_size_cut
 , avg(if(not is_corrective, if(code_non_test_files> 10 , null ,code_non_test_files), null)) as avg_coupling_code_size_cut
-#, avg(if(not is_corrective, if(code_non_test_files> 10 , null ,code_non_test_files), null)) as avg_coupling_code_size_cut10
 
 
 , 0.0 as tests_presence
@@ -74,7 +75,6 @@ as non_corrective_multiline_message_ratio
 #	\item Percentage of self-commits to the entire project commits
 , 0.0 as self_from_all_ratio
 
-# refactoring
 # Duration
 , avg(case when same_date_as_prev then duration else null end) as same_date_duration_avg
 , count(distinct case when same_date_as_prev then commit else null end) as same_date_commits
@@ -158,6 +158,8 @@ as no_test_refactor_rate
 , -1.0 as refactor_testing_involved_prob
 , null as abs_content_ratio
 
+, -1.0 as minutes_to_revert
+, -1.0 as reverted_ratio
 
 # Duration in project
 # Join time relative to project creation
@@ -308,20 +310,19 @@ dp.repo_name = r.repo_name
 
 drop table if exists general.dev_repo_length_properties;
 
-
 create table
 general.dev_repo_length_properties
 as
 select
-c.repo_name as repo_name
+repo_name as repo_name
 , creator_email as author_email
 , avg(size) as avg_file_size
 , avg(if(size > 180000, 180000, size)) as capped_avg_file_size
-, avg(if( c.extension in ('.bat', '.c', '.cc', '.coffee', '.cpp', '.cs', '.cxx', '.go',
+, avg(if( extension in ('.bat', '.c', '.cc', '.coffee', '.cpp', '.cs', '.cxx', '.go',
        '.groovy', '.hs', '.java', '.js', '.lua', '.m',
        '.module', '.php', '.pl', '.pm', '.py', '.rb', '.s', '.scala',
        '.sh', '.swift', '.tpl', '.twig'),size, null)) as avg_code_file_size
-, avg(if( c.extension in ('.bat', '.c', '.cc', '.coffee', '.cpp', '.cs', '.cxx', '.go',
+, avg(if( extension in ('.bat', '.c', '.cc', '.coffee', '.cpp', '.cs', '.cxx', '.go',
        '.groovy', '.hs', '.java', '.js', '.lua', '.m',
        '.module', '.php', '.pl', '.pm', '.py', '.rb', '.s', '.scala',
        '.sh', '.swift', '.tpl', '.twig')
@@ -330,11 +331,11 @@ c.repo_name as repo_name
 
 , sum(size) as sum_file_size
 , sum(if(size > 180000, 180000, size)) as capped_sum_file_size
-, sum(if( c.extension in ('.bat', '.c', '.cc', '.coffee', '.cpp', '.cs', '.cxx', '.go',
+, sum(if( extension in ('.bat', '.c', '.cc', '.coffee', '.cpp', '.cs', '.cxx', '.go',
        '.groovy', '.hs', '.java', '.js', '.lua', '.m',
        '.module', '.php', '.pl', '.pm', '.py', '.rb', '.s', '.scala',
        '.sh', '.swift', '.tpl', '.twig'),size, null)) as sum_code_file_size
-, sum(if( c.extension in ('.bat', '.c', '.cc', '.coffee', '.cpp', '.cs', '.cxx', '.go',
+, sum(if( extension in ('.bat', '.c', '.cc', '.coffee', '.cpp', '.cs', '.cxx', '.go',
        '.groovy', '.hs', '.java', '.js', '.lua', '.m',
        '.module', '.php', '.pl', '.pm', '.py', '.rb', '.s', '.scala',
        '.sh', '.swift', '.tpl', '.twig')
@@ -342,17 +343,11 @@ c.repo_name as repo_name
        , null)) as capped_sum_code_file_size
 
 from
-general.contents as c
-join
 general.file_properties as fp
-on
-c.repo_name = fp.repo_name
-and
-c.path = fp.file
 where
 authors = 1
 group by
-c.repo_name
+repo_name
 , author_email
 ;
 
@@ -379,6 +374,63 @@ rp.repo_name = rl.repo_name
 
 drop table if exists general.dev_repo_length_properties;
 
+drop table if exists general.author_owned_files_revert_time_per_repo;
+
+create table
+general.author_owned_files_revert_time_per_repo
+as
+select
+cf.Author_email
+, cf.repo_name
+, avg(minutes_to_revert) as minutes_to_revert
+, count(distinct cf.commit) as reverted_commits
+from
+general.file_properties as fp
+join
+general.commits_files as cf
+on
+fp.repo_name = cf.repo_name
+and
+fp.file = cf.file
+join
+general.reverted_commits as rc
+on
+cf.repo_name = rc.repo_name
+and
+cf.commit = rc.reverting_commit
+where
+authors = 1
+group by
+cf.Author_email
+, cf.repo_name
+;
+
+
+update general.developer_per_repo_profile as rp
+set
+minutes_to_revert = aux.minutes_to_revert
+, reverted_ratio = 1.0*aux.reverted_commits/rp.commits
+from
+general.author_owned_files_revert_time_per_repo as aux
+where
+rp.Author_email = aux.Author_email
+and
+rp.repo_name = aux.repo_name
+;
+
+update general.developer_per_repo_profile as rp
+set minutes_to_revert = Null
+where
+minutes_to_revert = -1.0
+;
+
+update general.developer_per_repo_profile as rp
+set reverted_ratio = Null
+where
+reverted_ratio = -1.0
+;
+
+drop table if exists general.author_owned_files_revert_time_per_repo;
 
 drop table if exists general.dev_per_repo_testing_pair_involvement;
 
