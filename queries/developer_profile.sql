@@ -47,7 +47,6 @@ author_email
 
 
 , 0.0 as tests_presence
-#	\item Percent of effective refactors
 
 # Commit message linguistic characteristic (e.g., message length)
 , 1.0*count(distinct if(REGEXP_CONTAINS(message,'\\n'), commit, null))/ count(distinct commit)
@@ -387,6 +386,9 @@ set reverted_ratio = Null
 where
 reverted_ratio = -1.0
 ;
+
+drop table if exists general.author_owned_files_revert_time;
+
 drop table if exists general.dev_testing_pair_involvement;
 
 create table general.dev_testing_pair_involvement
