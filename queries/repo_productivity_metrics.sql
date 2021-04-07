@@ -22,14 +22,18 @@ repo_name
 
 update general.repo_properties as rp
 set
-commits_per_developer = rp.commits/rp.authors
+commits_per_developer = if(rp.authors > 0
+                            , rp.commits/rp.authors
+                            , null)
 , involved_developers = aux.involved_developers
 , involved_developers_commits = aux.involved_developers_commits
 , commits_per_involved_developer = if(aux.involved_developers > 0
                                         , rp.commits/aux.involved_developers
                                         , null)
 , developer_capped_commits = aux.developer_capped_commits
-, capped_commits_per_developer = aux.developer_capped_commits/rp.authors
+, capped_commits_per_developer = if(rp.authors > 0
+                            , aux.developer_capped_commits/rp.authors
+                            , null)
 , involved_developers_capped_commits = aux.involved_developers_capped_commits
 , capped_commits_per_involved_developer = if(aux.involved_developers > 0
                                         , aux.involved_developers_capped_commits/aux.involved_developers
@@ -69,14 +73,18 @@ repo_name
 
 update general.repo_properties_per_year as rp
 set
-commits_per_developer = rp.commits/rp.authors
+commits_per_developer = if(rp.authors > 0
+                            , rp.commits/rp.authors
+                            , null)
 , involved_developers = aux.involved_developers
 , involved_developers_commits = aux.involved_developers_commits
 , commits_per_involved_developer = if(aux.involved_developers > 0
                                         , rp.commits/aux.involved_developers
                                         , null)
 , developer_capped_commits = aux.developer_capped_commits
-, capped_commits_per_developer = aux.developer_capped_commits/rp.authors
+, capped_commits_per_developer = if(rp.authors > 0
+                            , aux.developer_capped_commits/rp.authors
+                            , null)
 , involved_developers_capped_commits = aux.involved_developers_capped_commits
 , capped_commits_per_involved_developer = if(aux.involved_developers > 0
                                         , aux.involved_developers_capped_commits/aux.involved_developers
