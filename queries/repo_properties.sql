@@ -19,6 +19,7 @@ repo_name as repo_name
 , count(distinct case when is_corrective  then commit else null end) as corrective_commits
 , 1.0*count(distinct if(is_corrective, commit, null))/count(distinct commit) as corrective_rate
 , general.bq_ccp_mle(1.0*count(distinct if(is_corrective, commit, null))/count(distinct commit)) as ccp
+, -1.0 as hotspots_rate
 
 , general.bq_refactor_mle(1.0*count(distinct case when is_refactor  then commit else null end)/count(distinct commit))
         as refactor_mle
@@ -417,3 +418,29 @@ rp.repo_name = aux.repo_name
 ;
 
 drop table if exists general.repo_content_abstraction;
+
+drop table if exists general.repo_hotspots_rate;
+
+create table
+general.repo_hotspots_rate
+as
+select
+repo_name
+, if(sum(if(commits >= 10 and code_extension, 1,0)) > 0
+    ,sum(if(ccp >= 0.33 and commits >= 10 and code_extension, 1,0))/sum(if(commits >= 10 and code_extension, 1,0))
+    , null) as hotspots_rate
+from
+general.file_properties
+group by
+repo_name
+;
+
+update general.repo_properties as rp
+set hotspots_rate = aux.hotspots_rate
+from
+general.repo_hotspots_rate as aux
+where
+rp.repo_name = aux.repo_name
+;
+
+drop table if exists general.repo_hotspots_rate;
