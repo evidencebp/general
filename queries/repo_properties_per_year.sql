@@ -18,6 +18,7 @@ repo_name as repo_name
 , count(distinct case when is_corrective  then commit else null end) as corrective_commits
 , 1.0*count(distinct if(is_corrective, commit, null))/count(distinct commit) as corrective_rate
 , general.bq_ccp_mle(1.0*count(distinct if(is_corrective, commit, null))/count(distinct commit)) as ccp
+, -1.0 as hotspots_rate
 
 , general.bq_refactor_mle(1.0*count(distinct case when is_refactor  then commit else null end)/count(distinct commit))
         as refactor_mle
@@ -423,3 +424,38 @@ rp.year = aux.year
 
 drop table if exists general.repo_testing_pair_involvement_per_year;
 
+drop table if exists general.repo_hotspots_rate_per_year;
+
+create table
+general.repo_hotspots_rate_per_year
+as
+select
+repo_name
+, extract( year from commit_month) as year
+, if(sum(if(commits >= 10 and code_extension, 1,0)) > 0
+    ,sum(if(ccp >= 0.33 and commits >= 10 and code_extension, 1,0))/sum(if(commits >= 10 and code_extension, 1,0))
+    , null) as hotspots_rate
+from
+general.file_properties
+group by
+repo_name
+, year
+;
+
+update general.repo_properties_per_year as rp
+set hotspots_rate = aux.hotspots_rate
+from
+general.repo_hotspots_rate_per_year as aux
+where
+rp.repo_name = aux.repo_name
+and
+rp.year = aux.year
+;
+
+update general.repo_properties_per_year as rp
+set hotspots_rate = Null
+where
+hotspots_rate = -1.0
+;
+
+drop table if exists general.repo_hotspots_rate_per_year;
