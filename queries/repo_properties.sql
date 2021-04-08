@@ -443,4 +443,10 @@ where
 rp.repo_name = aux.repo_name
 ;
 
+update acumen_general.repo_properties as rp
+set hotspots_rate = Null
+where
+hotspots_rate = -1.0
+;
+
 drop table if exists general.repo_hotspots_rate;
