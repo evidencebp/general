@@ -76,6 +76,8 @@ as no_test_refactor_rate
 , -1.0 as refactor_testing_involved_prob
 , null as abs_content_ratio # We have data only in head, not per year
 
+, count(distinct if(is_performance, ec.commit, null))/count(distinct ec.commit) as performance_rate
+, count(distinct if(is_security, ec.commit, null))/count(distinct ec.commit) as security_rate
 
 from
 general.commits_files as cf

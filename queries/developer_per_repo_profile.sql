@@ -161,6 +161,9 @@ as no_test_refactor_rate
 , -1.0 as minutes_to_revert
 , -1.0 as reverted_ratio
 
+, count(distinct if(is_performance, ec.commit, null))/count(distinct ec.commit) as performance_rate
+, count(distinct if(is_security, ec.commit, null))/count(distinct ec.commit) as security_rate
+
 # Duration in project
 # Join time relative to project creation
 # Number of commits in project
