@@ -9,6 +9,7 @@ cur.repo_name as repo_name
 , cur.commit as commit
 , cur.file as file
 , max(cur.author_email) as author_email
+, count(distinct cur.author_email) as authors
 , max(cur.commit_timestamp) as commit_timestamp
 , max(prev.commit_timestamp) as prev_timestamp
 from
@@ -39,6 +40,8 @@ select
 cur.repo_name as repo_name
 , cur.commit as commit
 , cur.file as file
+, max(cur.author_email) as author_email
+, count(distinct cur.author_email) as authors
 , max(cur.commit_timestamp) as commit_timestamp
 , max(cur.prev_timestamp) as prev_timestamp
 , max(prev.commit) as prev_commit # The max is extra safety for the case of two commits in the same time
@@ -140,6 +143,7 @@ as
 select
 repo_name
 , commit
+, max(author_email) as author_email
 , max(commit_timestamp) as commit_timestamp
 , max(prev_touch_ago) as prev_touch_ago
 from
@@ -149,6 +153,7 @@ repo_name
 , commit
 ;
 
+# Repo
 drop table if exists general.repo_prev_touch;
 
 create table
@@ -179,6 +184,7 @@ prev_touch_ago = 0.0
 
 drop table if exists general.repo_prev_touch;
 
+# Repo per year
 drop table if exists general.repo_per_year_prev_touch;
 
 create table
@@ -212,7 +218,123 @@ where
 prev_touch_ago = 0.0
 ;
 
-drop table if exists general.repo_per_year_prev_touch;
+# Developer
+drop table if exists general.dev_prev_touch;
+
+create table
+general.dev_prev_touch
+as
+select
+author_email
+, avg(prev_touch_ago) as prev_touch_ago
+from
+general.commits_files_with_prev_touch
+where
+authors = 1 # Files owned by the developer
+group by
+author_email
+;
+
+
+update general.developer_profile as t
+set prev_touch_ago = aux.prev_touch_ago
+from
+general.dev_prev_touch as aux
+where
+t.author_email = aux.author_email
+;
+
+update general.developer_profile as rp
+set prev_touch_ago = null
+where
+prev_touch_ago = 0.0
+;
+
+drop table if exists general.dev_prev_touch;
+
+
+# Developer per repo
+drop table if exists general.dev_per_repo_prev_touch;
+
+create table
+general.dev_per_repo_prev_touch
+as
+select
+author_email
+, repo_name
+, avg(prev_touch_ago) as prev_touch_ago
+from
+general.commits_files_with_prev_touch
+where
+authors = 1 # Files owned by the developer
+group by
+author_email
+, repo_name
+;
+
+
+update general.developer_per_repo_profile as t
+set prev_touch_ago = aux.prev_touch_ago
+from
+general.dev_per_repo_prev_touch as aux
+where
+t.author_email = aux.author_email
+and
+t.repo_name = aux.repo_name
+;
+
+update general.developer_per_repo_profile as rp
+set prev_touch_ago = null
+where
+prev_touch_ago = 0.0
+;
+
+drop table if exists general.dev_per_repo_prev_touch;
+
+# Developer per repo per year
+drop table if exists general.dev_per_repo_per_year_prev_touch;
+
+create table
+general.dev_per_repo_per_year_prev_touch
+as
+select
+author_email
+, repo_name
+, extract(year from commit_timestamp) as year
+, avg(prev_touch_ago) as prev_touch_ago
+from
+general.commits_files_with_prev_touch
+where
+authors = 1 # Files owned by the developer
+group by
+author_email
+, repo_name
+, year
+;
+
+
+update general.developer_per_repo_profile_per_year as t
+set prev_touch_ago = aux.prev_touch_ago
+from
+general.dev_per_repo_per_year_prev_touch as aux
+where
+t.author_email = aux.author_email
+and
+t.repo_name = aux.repo_name
+and
+t.year = aux.year
+;
+
+update general.developer_per_repo_profile_per_year as rp
+set prev_touch_ago = null
+where
+prev_touch_ago = 0.0
+;
+
+drop table if exists general.dev_per_repo_per_year_prev_touch;
+
+
+
 
 drop table if exists general.file_prev_touch_stats;
 drop table if exists general.file_prev_touch_stats_per_year;
