@@ -1,3 +1,4 @@
+# Churn_and_onboarding.sql
 drop table if exists general.repo_onboarding;
 
 
