@@ -121,6 +121,9 @@ as non_corrective_multiline_message_ratio
 
 
 , 0.0 as prev_touch_ago
+, 0.0 as bug_prev_touch_ago
+
+
 ,  avg(if(same_date_as_prev, duration, null)) as same_day_duration_avg
 
 # Abstraction
@@ -183,6 +186,7 @@ set days_entropy = - (case when Sunday_prob > 0 then Sunday_prob*log(Sunday_prob
                         + case when Saturday_prob > 0 then Saturday_prob*log(Saturday_prob,2) else 0 end
 )
 , prev_touch_ago = null
+, bug_prev_touch_ago = null
 where true
 ;
 
@@ -223,6 +227,9 @@ Author_email
 , count(distinct concat(repo_name, file)) as files
 , general.bq_ccp_mle(1.0*sum(corrective_commits)/sum(commits)) as ccp
 , sum(prev_touch_ago*commits)/sum(commits) as prev_touch_ago
+, if(sum(corrective_commits) > 0
+    , sum(bug_prev_touch_ago*corrective_commits)/sum(corrective_commits)
+     , null) as bug_prev_touch_ago
 from
 general.file_properties
 where
@@ -236,6 +243,7 @@ set
 files_owned = aof.files
 , files_owned_ccp = aof.ccp
 , prev_touch_ago = aof.prev_touch_ago
+, bug_prev_touch_ago = aof.bug_prev_touch_ago
 from
 general.author_owned_files as aof
 where

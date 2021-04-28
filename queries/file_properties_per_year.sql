@@ -42,6 +42,7 @@ cf.repo_name as repo_name
 , avg(if(same_date_as_prev, duration, null)) as same_day_duration_avg
 
 , 0.0 as prev_touch_ago
+, 0.0 as bug_prev_touch_ago
 
 # Abstraction
 , if (sum(if(ec.is_corrective, 1,0 )) > 0

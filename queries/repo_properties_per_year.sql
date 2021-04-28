@@ -116,6 +116,7 @@ as non_corrective_multiline_message_ratio
 , -1.0 as retention_prob
 
 , 0.0 as prev_touch_ago
+, 0.0 as bug_prev_touch_ago
 
 # Abstraction
 , if (sum(if(ec.is_corrective, 1,0 )) > 0
