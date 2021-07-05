@@ -21,6 +21,8 @@ cf.repo_name as repo_name
 , count(distinct case when cf.is_corrective  then cf.commit else null end) as corrective_commits
 , 1.0*count(distinct if(cf.is_corrective, cf.commit, null))/count(distinct cf.commit) as corrective_rate
 , general.bq_ccp_mle(1.0*count(distinct if(cf.is_corrective, cf.commit, null))/count(distinct cf.commit)) as ccp
+, general.bq_refactor_mle(1.0*count(distinct case when cf.is_refactor  then cf.commit else null end)/count(distinct cf.commit))
+        as refactor_mle
 , avg(if(not cf.is_corrective, non_test_files, null)) as avg_coupling_size
 , avg(if(not cf.is_corrective, code_non_test_files, null)) as avg_coupling_code_size
 , avg(if(not cf.is_corrective, if(non_test_files > 103 , 103 , non_test_files), null)) as avg_coupling_size_capped
