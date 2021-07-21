@@ -19,7 +19,7 @@ CREATE OR REPLACE FUNCTION
 general.bq_effective_refactor_days()
  RETURNS int64
 AS (
-3*30 # 3 months
+6*30 # in days
  )
  ;
 
@@ -185,18 +185,20 @@ repo_name
 , commit
 ;
 
+
 select
-count(distinct if(code_non_test_files <= 5
-                    and refactor_mle_after <= 0
-                    and refactor_mle_before <= 0
-                    and commits_after >= 10
-                    and commits_before >= 10
+count(*) as refactors
+, count(distinct if(code_non_test_files <= 10
+                    and refactor_mle_after <= 0.2
+                    and refactor_mle_before <= 0.2
+                    and commits_after >= 5
+                    and commits_before >= 5
                       , commit, null)) as clean_refactor
-, count(distinct if(code_non_test_files <= 5
-                    and refactor_mle_after <= 0
-                    and refactor_mle_before <= 0
-                    and commits_after >= 10
-                    and commits_before >= 10
+, count(distinct if(code_non_test_files <= 10
+                    and refactor_mle_after <= 0.2
+                    and refactor_mle_before <= 0.2
+                    and commits_after >= 5
+                    and commits_before >= 5
 
                     and ccp_worse = 0
                     and same_date_duration_worse = 0
@@ -204,11 +206,11 @@ count(distinct if(code_non_test_files <= 5
                     and one_file_fix_rate_worse = 0
                     and one_file_refactor_rate_worse = 0
                       , commit, null)) as clean_no_harm_refactor
-, count(distinct if(code_non_test_files <= 5
-                    and refactor_mle_after <= 0
-                    and refactor_mle_before <= 0
-                    and commits_after >= 10
-                    and commits_before >= 10
+, count(distinct if(code_non_test_files <= 10
+                    and refactor_mle_after <= 0.2
+                    and refactor_mle_before <= 0.2
+                    and commits_after >= 5
+                    and commits_before >= 5
 
                     and ccp_worse = 0
                     and same_date_duration_worse = 0
@@ -222,11 +224,11 @@ count(distinct if(code_non_test_files <= 5
                             or one_file_fix_rate_improvement > 0
                             or one_file_refactor_rate_improvement > 0)
                       , commit, null)) as clean_good_refactor
-, count(distinct if(code_non_test_files <= 5
-                    and refactor_mle_after <= 0
-                    and refactor_mle_before <= 0
-                    and commits_after >= 10
-                    and commits_before >= 10
+, count(distinct if(code_non_test_files <= 10
+                    and refactor_mle_after <= 0.2
+                    and refactor_mle_before <= 0.2
+                    and commits_after >= 5
+                    and commits_before >= 5
 
                     and ccp_worse = 0
                     and same_date_duration_worse = 0
@@ -240,11 +242,11 @@ count(distinct if(code_non_test_files <= 5
                             or one_file_fix_rate_improvement > 0.1
                             or one_file_refactor_rate_improvement > 0.1)
                       , commit, null)) as clean_really_good_refactor
-, count(distinct if(code_non_test_files <= 5
-                    and refactor_mle_after <= 0
-                    and refactor_mle_before <= 0
-                    and commits_after >= 10
-                    and commits_before >= 10
+, count(distinct if(code_non_test_files <= 10
+                    and refactor_mle_after <= 0.2
+                    and refactor_mle_before <= 0.2
+                    and commits_after >= 5
+                    and commits_before >= 5
 
                     and ccp_worse = 0
                     and same_date_duration_worse = 0
@@ -262,6 +264,7 @@ count(distinct if(code_non_test_files <= 5
 
 from
 general.refactoring_stats
+;
 
  select
  same_date_duration_before - 10 > same_date_duration_after as duration_improved
