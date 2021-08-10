@@ -132,6 +132,18 @@ general.flat_commits as c
 update
 general.enhanced_commits
 set
+files = null
+, non_test_files  = null
+, code_files  = null
+, code_non_test_files = null
+, duration  = null
+where
+true
+;
+
+update
+general.enhanced_commits
+set
 is_positive_sentiment = (general.bq_positive_sentiment(message) > 0)
 where
 true
