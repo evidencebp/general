@@ -54,6 +54,9 @@ See here the [analysis utilities](https://github.com/evidencebp/analysis_utils)
 
 See here the [general database construction](https://github.com/evidencebp/general) 
 
-Research used the model of commit d15d54e
+
+# Versions
+
+Live version is updating at https://github.com/evidencebp/general/
 Repository will keep advancing.
 
