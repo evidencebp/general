@@ -57,6 +57,10 @@ See here the [general database construction](https://github.com/evidencebp/gener
 
 # Versions
 
+Version used for "ComSum: Commit Messages Summarization and Meaning Preservation" by Leshem Choshen and Idan Amit.
+[![DOI](https://zenodo.org/badge/277322370.svg)](https://zenodo.org/badge/latestdoi/277322370)
+
 Live version is updating at https://github.com/evidencebp/general/
+
 Repository will keep advancing.
 
