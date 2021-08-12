@@ -44,6 +44,18 @@ Please cite as
 }
 ```
 
+The repository itself should be cited as
+```
+
+@article{Amit2021General
+, title={General infrastructure for Github data analysis over BigQuery }, 
+DOI={10.5281/zenodo.5179783},
+publisher={Zenodo}
+, author={Idan Amit}
+, year={2021}
+, month={Aug}}
+
+```
 
 See here the [linguistic commit classification](https://github.com/evidencebp/commit-classification)
 
