@@ -97,3 +97,14 @@ AS (
  )
 ;
 
+
+CREATE OR REPLACE FUNCTION
+general.bq_commit_split
+ (commit string)
+ RETURNS string
+AS (
+    general.bq_split(commit
+                        , '6gd8h3')
+
+ )
+;
