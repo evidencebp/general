@@ -1,6 +1,5 @@
 # commit_file_prev_touch.sql
 
-# TODO - consider prev touch for bugs only
 drop table if exists general.commits_files_prev_timestamp;
 
 create table
