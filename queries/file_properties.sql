@@ -152,12 +152,12 @@ as
 select
 c.repo_name
 , c.file
-, avg(if(test_involved, 1,0) ) as testing_involved_prob
-, if( sum(if(is_corrective, 1,0)) > 0
-    , 1.0*sum(if(test_involved and is_corrective, 1,0) )/sum(if(is_corrective, 1,0))
+, avg(if(c.test_involved, 1,0) ) as testing_involved_prob
+, if( sum(if(c.is_corrective, 1,0)) > 0
+    , 1.0*sum(if(c.test_involved and c.is_corrective, 1,0) )/sum(if(c.is_corrective, 1,0))
     , null) as corrective_testing_involved_prob
-, if( sum(if(is_refactor, 1,0)) > 0
-    , 1.0*sum(if(test_involved and is_refactor, 1,0) )/sum(if(is_refactor, 1,0))
+, if( sum(if(c.is_refactor, 1,0)) > 0
+    , 1.0*sum(if(c.test_involved and c.is_refactor, 1,0) )/sum(if(c.is_refactor, 1,0))
     , null) as refactor_testing_involved_prob
 from
 general.testing_pairs_commits as c
