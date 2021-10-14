@@ -150,8 +150,8 @@ drop table if exists general.file_testing_pair_involvement;
 create table general.file_testing_pair_involvement
 as
 select
-repo_name
-, file
+c.repo_name
+, c.file
 , avg(if(test_involved, 1,0) ) as testing_involved_prob
 , if( sum(if(is_corrective, 1,0)) > 0
     , 1.0*sum(if(test_involved and is_corrective, 1,0) )/sum(if(is_corrective, 1,0))
@@ -160,10 +160,10 @@ repo_name
     , 1.0*sum(if(test_involved and is_refactor, 1,0) )/sum(if(is_refactor, 1,0))
     , null) as refactor_testing_involved_prob
 from
-general.testing_pairs_commits
+general.testing_pairs_commits as c
 group by
-repo_name
-, file
+c.repo_name
+, c.file
 ;
 
 update general.file_properties as fp
