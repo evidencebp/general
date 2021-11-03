@@ -9,9 +9,9 @@ repo_name
 , count(distinct author_email) as developers
 , count(distinct if(commits >= 12, author_email, null)) as involved_developers
 , sum(if(commits >= 12, commits, 0)) as involved_developers_commits
-, sum(if(commits < 500, commits, 500))  as developer_capped_commits
+, sum(if(commits < 1000, commits, 1000))  as developer_capped_commits
 , sum(if(commits >= 12
-            , if(commits < 500, commits, 500)
+            , if(commits < 1000, commits, 1000)
             , 0)) as involved_developers_capped_commits
 from
 general.developer_per_repo_profile
@@ -60,9 +60,9 @@ repo_name
 , count(distinct author_email) as developers
 , count(distinct if(commits >= 12, author_email, null)) as involved_developers
 , sum(if(commits >= 12, commits, 0)) as involved_developers_commits
-, sum(if(commits < 500, commits, 500))  as developer_capped_commits
+, sum(if(commits < 1000, commits, 1000))  as developer_capped_commits
 , sum(if(commits >= 12
-            , if(commits < 500, commits, 500)
+            , if(commits < 1000, commits, 1000)
             , 0)) as involved_developers_capped_commits
 from
 general.developer_per_repo_profile_per_year
