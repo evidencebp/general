@@ -1,9 +1,4 @@
-# Testing pairs
-
-# TODO - testing pairs uses file properties which in turn uses teting pairs.
-# It works since it uses a prior version.
-# Break the cycle by using general.files instead.
-# Properties are not used anyway
+# general - testing pairs
 
 drop table if exists general.testing_pairs;
 
@@ -12,29 +7,33 @@ general.testing_pairs
 as
 select
 tested.repo_name as repo_name
-, tested.file as tested_file
-, testing.file as testing_file
+, tested.path as tested_file
+, testing.path as testing_file
 from
-general.file_properties as tested
+general.files as tested
 join
-general.file_properties as testing
+general.files as testing
 on
 tested.repo_name = testing.repo_name
 and
-testing.is_test
+regexp_contains(lower(testing.path), 'test')
 and
-not tested.is_test
+not regexp_contains(lower(tested.path), 'test')
 and
-REGEXP_REPLACE(lower(if(STRPOS(testing.file, '/') >= 0
-    ,reverse(substr(reverse(testing.file), 0, STRPOS(reverse(testing.file), '/') ))
-    , testing.file)), '(test(er|s|ting)?(bed|apps|data|suite)?|_|-|/|\\.)', '')
-= REGEXP_REPLACE(lower(if(STRPOS(tested.file, '/') >= 0
-    ,reverse(substr(reverse(tested.file), 0, STRPOS(reverse(tested.file), '/') ))
-    , tested.file)), '(test(er|s|ting)?(bed|apps|data|suite)?|_|-|/|\\.)', '')
-
+REGEXP_REPLACE(lower(if(STRPOS(testing.path, '/') >= 0
+    ,reverse(substr(reverse(testing.path), 0, STRPOS(reverse(testing.path), '/') ))
+    , testing.path)), '(test(er|s|ting)?(bed|apps|data|suite)?|_|-|/|\\.)', '')
+= REGEXP_REPLACE(lower(if(STRPOS(tested.path, '/') >= 0
+    ,reverse(substr(reverse(tested.path), 0, STRPOS(reverse(tested.path), '/') ))
+    , tested.path)), '(test(er|s|ting)?(bed|apps|data|suite)?|_|-|/|\\.)', '')
 and
-REGEXP_REPLACE(lower(testing.file), '([a-z0-9-]*test(er|s|ting)?[a-z0-9-]*|_|-|/)', '')
-= REGEXP_REPLACE(lower(tested.file), '([a-z0-9-]*test(er|s|ting)?[a-z0-9-]*|_|-|/)', '')
+REGEXP_REPLACE(lower(testing.path), '([a-z0-9-]*test(er|s|ting)?[a-z0-9-]*|_|-|/)', '')
+= REGEXP_REPLACE(lower(tested.path), '([a-z0-9-]*test(er|s|ting)?[a-z0-9-]*|_|-|/)', '')
+# Might consider filtering general files which are not tests
+#and
+#lower(reverse(substr(reverse(testing.path), 0, STRPOS(reverse(testing.path), '/') ))) != '/__init__.py'
+#and
+#lower(reverse(substr(reverse(tested.path), 0, STRPOS(reverse(tested.path), '/') ))) != '/__init__.py'
 ;
 
 
