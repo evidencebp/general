@@ -1,3 +1,5 @@
+# General - reverted_commits.sql
+
 drop table if exists general.reverted_commits_raw;
 
 
