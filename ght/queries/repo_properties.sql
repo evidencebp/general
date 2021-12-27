@@ -22,6 +22,7 @@ p.repo_name as repo_name
 , avg( assigned_to_closed_minutes ) as assigned_to_closed_minutes
 , avg( created_to_assigned_minutes ) as created_to_assigned_minutes
 , avg( created_to_closed_minutes ) as created_to_closed_minutes
+, 0.0 as wip_tasks
 from
 general_ght.enhanced_issues as ie
 join
@@ -30,6 +31,26 @@ on
 ie.repo_id = p.id
 group by
 p.repo_name
+;
+
+
+update general_ght.repo_issues_profile as t
+set
+wip_tasks = aux.wip_tasks
+from
+general_ght.repo_wip as aux
+join
+general_ght.projects as p
+on
+aux.repo_id = p.id
+where
+t.repo_name = p.repo_name
+;
+
+update general_ght.repo_issues_profile as t
+set wip_tasks = null
+where
+wip_tasks = 0.0
 ;
 
 drop table if exists general_ght.pull_requests_profile;
@@ -83,6 +104,8 @@ rp.*
 , ip.assigned_to_closed_minutes
 , ip.created_to_assigned_minutes
 , ip.created_to_closed_minutes
+, ip.wip_tasks
+
 , prp.pull_requests
 , prp.opened_prs
 , prp.opened_pr_ratio
@@ -170,6 +193,8 @@ p.repo_name as repo_name
 , avg( created_to_assigned_minutes ) as created_to_assigned_minutes
 , avg( created_to_closed_minutes ) as created_to_closed_minutes
 
+, 0.0 as wip_tasks
+
 from
 general.repo_properties_per_year as rpy
 join
@@ -188,6 +213,27 @@ p.repo_name
 ;
 
 
+
+update general_ght.repo_issues_profile_per_year as t
+set
+wip_tasks = aux.wip_tasks
+from
+general_ght.repo_wip_by_year as aux
+join
+general_ght.projects as p
+on
+aux.repo_id = p.id
+where
+t.repo_name = p.repo_name
+and
+aux.year = t.year
+;
+
+update general_ght.repo_issues_profile_per_year as t
+set wip_tasks = null
+where
+wip_tasks = 0.0
+;
 
 drop table if exists general_ght.pull_requests_profile_per_year;
 
@@ -262,6 +308,7 @@ rpy.*
 , ip.assigned_to_closed_minutes
 , ip.created_to_assigned_minutes
 , ip.created_to_closed_minutes
+, ip.wip_tasks
 , prp.pull_requests
 , prp.opened_prs
 , prp.opened_pr_ratio
