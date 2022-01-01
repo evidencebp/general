@@ -106,12 +106,12 @@ repo_name, commit
 as
 select
 c.*
-, general.bq_corrective(message) > 0 as is_corrective
-, general.bq_adaptive(message) > 0 as is_adaptive
-, general.bq_perfective(message) > 0 as is_perfective
-, general.bq_English(message) > 0 as is_English
-, general.bq_refactor(message) > 0 as is_refactor
-, general.bq_core_cursing(message) > 0 as is_cursing
+, False as is_corrective
+, False as is_adaptive
+, False as is_perfective
+, False as is_English
+, False as is_refactor
+, False as is_cursing
 , False as is_positive_sentiment
 , False as is_negative_sentiment
 , False as is_performance
@@ -137,6 +137,56 @@ files = null
 , code_files  = null
 , code_non_test_files = null
 , duration  = null
+where
+true
+;
+
+update
+general.enhanced_commits
+set
+is_corrective = (general.bq_corrective(message) > 0)
+where
+true
+;
+
+
+update
+general.enhanced_commits
+set
+is_adaptive = (general.bq_adaptive(message) > 0)
+where
+true
+;
+
+update
+general.enhanced_commits
+set
+is_perfective = (general.bq_perfective(message) > 0)
+where
+true
+;
+
+update
+general.enhanced_commits
+set
+is_English = (general.bq_English(message) > 0)
+where
+true
+;
+
+
+update
+general.enhanced_commits
+set
+is_refactor = (general.bq_refactor(message) > 0)
+where
+true
+;
+
+update
+general.enhanced_commits
+set
+is_cursing = (general.bq_core_cursing(message) > 0)
 where
 true
 ;
