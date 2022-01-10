@@ -22,6 +22,8 @@ p.repo_name as repo_name
 , avg( assigned_to_closed_minutes ) as assigned_to_closed_minutes
 , avg( created_to_assigned_minutes ) as created_to_assigned_minutes
 , avg( created_to_closed_minutes ) as created_to_closed_minutes
+
+, avg(if(created_to_closed_minutes > 5*60*24, 1,0)) as long_issues_rate
 , 0.0 as wip_tasks
 from
 general_ght.enhanced_issues as ie
@@ -105,6 +107,7 @@ rp.*
 , ip.created_to_assigned_minutes
 , ip.created_to_closed_minutes
 , ip.wip_tasks
+, ip.long_issues_rate
 
 , prp.pull_requests
 , prp.opened_prs
@@ -193,6 +196,7 @@ p.repo_name as repo_name
 , avg( created_to_assigned_minutes ) as created_to_assigned_minutes
 , avg( created_to_closed_minutes ) as created_to_closed_minutes
 
+, avg(if(created_to_closed_minutes > 5*60*24, 1,0)) as long_issues_rate
 , 0.0 as wip_tasks
 
 from
@@ -309,6 +313,8 @@ rpy.*
 , ip.created_to_assigned_minutes
 , ip.created_to_closed_minutes
 , ip.wip_tasks
+, ip.long_issues_rate
+
 , prp.pull_requests
 , prp.opened_prs
 , prp.opened_pr_ratio
