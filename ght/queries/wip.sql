@@ -1,3 +1,4 @@
+# Ght/wip.sql
 drop table if exists general_ght.issue_status_period;
 
 
