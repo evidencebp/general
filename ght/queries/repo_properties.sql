@@ -1,8 +1,8 @@
 # GHT repo_properties.sql
-drop table if exists general_ght.repo_issues_profile;
+drop table if exists general_ght_large.repo_issues_profile;
 
 create table
-general_ght.repo_issues_profile
+general_ght_large.repo_issues_profile
 as
 select
 p.repo_name as repo_name
@@ -26,9 +26,9 @@ p.repo_name as repo_name
 , avg(if(created_to_closed_minutes > 5*60*24, 1,0)) as long_issues_rate
 , 0.0 as wip_tasks
 from
-general_ght.enhanced_issues as ie
+general_ght_large.enhanced_issues as ie
 join
-general_ght.projects as p
+general_ght_large.projects as p
 on
 ie.repo_id = p.id
 group by
@@ -36,29 +36,29 @@ p.repo_name
 ;
 
 
-update general_ght.repo_issues_profile as t
+update general_ght_large.repo_issues_profile as t
 set
 wip_tasks = aux.wip_tasks
 from
-general_ght.repo_wip as aux
+general_ght_large.repo_wip as aux
 join
-general_ght.projects as p
+general_ght_large.projects as p
 on
 aux.repo_id = p.id
 where
 t.repo_name = p.repo_name
 ;
 
-update general_ght.repo_issues_profile as t
+update general_ght_large.repo_issues_profile as t
 set wip_tasks = null
 where
 wip_tasks = 0.0
 ;
 
-drop table if exists general_ght.pull_requests_profile;
+drop table if exists general_ght_large.pull_requests_profile;
 
 create table
-general_ght.pull_requests_profile
+general_ght_large.pull_requests_profile
 as
 select
 p.repo_name as repo_name
@@ -74,19 +74,19 @@ p.repo_name as repo_name
 , avg(first_commit_to_merge_minutes) as first_commit_to_merge_minutes
 , 1.0*sum(if(days_to_first_bug <=7, 1,0))/sum(1) as sloppy_pr_ratio
 from
-general_ght.projects as p
+general_ght_large.projects as p
 join
-general_ght.enhanced_pull_requests as epr
+general_ght_large.enhanced_pull_requests as epr
 on
 p.id = epr.base_repo_id
 group by
 p.repo_name
 ;
 
-drop table if exists general_ght.repo_profile;
+drop table if exists general_ght_large.repo_profile;
 
 create table
-general_ght.repo_profile
+general_ght_large.repo_profile
 as
 select
 rp.*
@@ -132,31 +132,31 @@ rp.*
         , null) as merged_prs_per_involved_developer
 
 from
-general.repo_properties as rp
+general_large.repo_properties as rp
 left join
-general_ght.projects as p
+general_ght_large.projects as p
 on
 rp.repo_name = p.repo_name
 left join
-general_ght.repo_issues_profile as ip
+general_ght_large.repo_issues_profile as ip
 on
 p.repo_name = ip.repo_name
 left join
-general_ght.pull_requests_profile as prp
+general_ght_large.pull_requests_profile as prp
 on
 p.repo_name = prp.repo_name
 ;
 
-drop table if exists general_ght.repo_issues_profile;
-drop table if exists general_ght.pull_requests_profile;
+drop table if exists general_ght_large.repo_issues_profile;
+drop table if exists general_ght_large.pull_requests_profile;
 
 
 ##### Repo properties per year
 
-drop table if exists general_ght.repo_issues_profile_per_year;
+drop table if exists general_ght_large.repo_issues_profile_per_year;
 
 create table
-general_ght.repo_issues_profile_per_year
+general_ght_large.repo_issues_profile_per_year
 as
 select
 p.repo_name as repo_name
@@ -200,13 +200,13 @@ p.repo_name as repo_name
 , 0.0 as wip_tasks
 
 from
-general.repo_properties_per_year as rpy
+general_large.repo_properties_per_year as rpy
 join
-general_ght.projects as p
+general_ght_large.projects as p
 on
 rpy.repo_name = p.repo_name
 join
-general_ght.enhanced_issues as ie
+general_ght_large.enhanced_issues as ie
 on
 ie.repo_id = p.id
 and
@@ -218,13 +218,13 @@ p.repo_name
 
 
 
-update general_ght.repo_issues_profile_per_year as t
+update general_ght_large.repo_issues_profile_per_year as t
 set
 wip_tasks = aux.wip_tasks
 from
-general_ght.repo_wip_by_year as aux
+general_ght_large.repo_wip_by_year as aux
 join
-general_ght.projects as p
+general_ght_large.projects as p
 on
 aux.repo_id = p.id
 where
@@ -233,16 +233,16 @@ and
 aux.year = t.year
 ;
 
-update general_ght.repo_issues_profile_per_year as t
+update general_ght_large.repo_issues_profile_per_year as t
 set wip_tasks = null
 where
 wip_tasks = 0.0
 ;
 
-drop table if exists general_ght.pull_requests_profile_per_year;
+drop table if exists general_ght_large.pull_requests_profile_per_year;
 
 create table
-general_ght.pull_requests_profile_per_year
+general_ght_large.pull_requests_profile_per_year
 as
 select
 p.repo_name as repo_name
@@ -271,13 +271,13 @@ p.repo_name as repo_name
  and days_to_first_bug <=7, 1,0))/sum(if(extract(year from epr.created_at) = rpy.year,1, 0))
 , null) as sloppy_pr_ratio
 from
-general.repo_properties_per_year as rpy
+general_large.repo_properties_per_year as rpy
 join
-general_ght.projects as p
+general_ght_large.projects as p
 on
 rpy.repo_name = p.repo_name
 join
-general_ght.enhanced_pull_requests as epr
+general_ght_large.enhanced_pull_requests as epr
 on
 p.id = epr.base_repo_id
 and
@@ -288,11 +288,11 @@ p.repo_name
 ;
 
 
-drop table if exists general_ght.repo_properties_per_year;
+drop table if exists general_ght_large.repo_properties_per_year;
 
 
 create table
-general_ght.repo_properties_per_year
+general_ght_large.repo_properties_per_year
 as
 select
 rpy.*
@@ -338,20 +338,20 @@ rpy.*
         , null)as merged_prs_per_involved_developer
 
 from
-general.repo_properties_per_year as rpy
+general_large.repo_properties_per_year as rpy
 left join
-general_ght.repo_issues_profile_per_year as ip
+general_ght_large.repo_issues_profile_per_year as ip
 on
 rpy.repo_name = ip.repo_name
 and
 rpy.year = ip.year
 left join
-general_ght.pull_requests_profile_per_year as prp
+general_ght_large.pull_requests_profile_per_year as prp
 on
 rpy.repo_name = prp.repo_name
 and
 rpy.year = prp.year
 ;
 
-drop table if exists general_ght.repo_issues_profile_per_year;
-drop table if exists general_ght.pull_requests_profile_per_year;
+drop table if exists general_ght_large.repo_issues_profile_per_year;
+drop table if exists general_ght_large.pull_requests_profile_per_year;

@@ -1,8 +1,8 @@
 # enhanced_pull_requests.sql
-drop table if exists general_ght.pull_request_actions_agg;
+drop table if exists general_ght_large.pull_request_actions_agg;
 
 
-create table general_ght.pull_request_actions_agg
+create table general_ght_large.pull_request_actions_agg
 as
 select
 pull_request_id
@@ -17,23 +17,23 @@ pull_request_id
 , count(distinct if(action = 'merged', id, null)) as merged_num
 , 0 as merged_by
 from
-general_ght.pull_request_history
+general_ght_large.pull_request_history
 group by
 pull_request_id
 ;
 
 
-drop table if exists general_ght.pull_request_opener;
+drop table if exists general_ght_large.pull_request_opener;
 
-create table general_ght.pull_request_opener
+create table general_ght_large.pull_request_opener
 as
 select
 prh.pull_request_id
 , min(prh.actor_id) as actor
 from
-general_ght.pull_request_history as prh
+general_ght_large.pull_request_history as prh
 join
-general_ght.pull_request_actions_agg as praa
+general_ght_large.pull_request_actions_agg as praa
 on
 praa.pull_request_id = prh.pull_request_id
 and
@@ -46,26 +46,26 @@ having
 count(distinct prh.actor_id) = 1 # Avoid cases of uncertainty
 ;
 
-update general_ght.pull_request_actions_agg as praa
+update general_ght_large.pull_request_actions_agg as praa
 set opened_by = pra.actor
 from
-general_ght.pull_request_opener as pra
+general_ght_large.pull_request_opener as pra
 where
 praa.pull_request_id = pra.pull_request_id
 ;
-drop table if exists general_ght.pull_request_opener;
+drop table if exists general_ght_large.pull_request_opener;
 
-drop table if exists general_ght.pull_request_closer;
+drop table if exists general_ght_large.pull_request_closer;
 
-create table general_ght.pull_request_closer
+create table general_ght_large.pull_request_closer
 as
 select
 prh.pull_request_id
 , min(prh.actor_id) as actor
 from
-general_ght.pull_request_history as prh
+general_ght_large.pull_request_history as prh
 join
-general_ght.pull_request_actions_agg as praa
+general_ght_large.pull_request_actions_agg as praa
 on
 praa.pull_request_id = prh.pull_request_id
 and
@@ -78,26 +78,26 @@ having
 count(distinct prh.actor_id) = 1 # Avoid cases of uncertainty
 ;
 
-update general_ght.pull_request_actions_agg as praa
+update general_ght_large.pull_request_actions_agg as praa
 set closed_by = pra.actor
 from
-general_ght.pull_request_closer as pra
+general_ght_large.pull_request_closer as pra
 where
 praa.pull_request_id = pra.pull_request_id
 ;
-drop table if exists general_ght.pull_request_closer;
+drop table if exists general_ght_large.pull_request_closer;
 
-drop table if exists general_ght.pull_request_merger;
+drop table if exists general_ght_large.pull_request_merger;
 
-create table general_ght.pull_request_merger
+create table general_ght_large.pull_request_merger
 as
 select
 prh.pull_request_id
 , min(prh.actor_id) as actor
 from
-general_ght.pull_request_history as prh
+general_ght_large.pull_request_history as prh
 join
-general_ght.pull_request_actions_agg as praa
+general_ght_large.pull_request_actions_agg as praa
 on
 praa.pull_request_id = prh.pull_request_id
 and
@@ -110,20 +110,20 @@ having
 count(distinct prh.actor_id) = 1 # Avoid cases of uncertainty
 ;
 
-update general_ght.pull_request_actions_agg as praa
+update general_ght_large.pull_request_actions_agg as praa
 set merged_by = pra.actor
 from
-general_ght.pull_request_merger as pra
+general_ght_large.pull_request_merger as pra
 where
 praa.pull_request_id = pra.pull_request_id
 ;
-drop table if exists general_ght.pull_request_merger;
+drop table if exists general_ght_large.pull_request_merger;
 
 
-drop table if exists general_ght.pull_request_commits_agg;
+drop table if exists general_ght_large.pull_request_commits_agg;
 
 create table
-general_ght.pull_request_commits_agg
+general_ght_large.pull_request_commits_agg
 as
 select
 prc.pull_request_id as pull_request_id
@@ -134,9 +134,9 @@ prc.pull_request_id as pull_request_id
 , min(c.created_at) as first_commit_timestamp
 , max(c.created_at) as last_commit_timestamp
 from
-general_ght.pull_request_commits as prc
+general_ght_large.pull_request_commits as prc
 join
-general_ght.commits as c
+general_ght_large.commits as c
 on
 prc.commit_id = c.id
 group by
@@ -144,10 +144,10 @@ prc.pull_request_id
 ;
 
 
-drop table if exists general_ght.pull_request_comments_agg;
+drop table if exists general_ght_large.pull_request_comments_agg;
 
 create table
-general_ght.pull_request_comments_agg
+general_ght_large.pull_request_comments_agg
 as
 select
 comments.pull_request_id
@@ -160,13 +160,13 @@ comments.pull_request_id
 
 , count(distinct comment_id) as comments_num
 from
-general_ght.pull_request_comments as comments
+general_ght_large.pull_request_comments as comments
 left join
-general_ght.pull_request_commits as prc
+general_ght_large.pull_request_commits as prc
 on
 comments.pull_request_id = prc.pull_request_id
 left join
-general_ght.commits as commits
+general_ght_large.commits as commits
 on
 prc.commit_id = commits.id
 and
@@ -175,10 +175,10 @@ group by
 pull_request_id
 ;
 
-drop table if exists general_ght.enhanced_pull_requests;
+drop table if exists general_ght_large.enhanced_pull_requests;
 
 create table
-general_ght.enhanced_pull_requests
+general_ght_large.enhanced_pull_requests
 as
 select
 pr.*
@@ -219,38 +219,38 @@ pr.*
         as first_commit_to_merge_minutes
 , -1 as days_to_first_bug
 from
-general_ght.pull_requests as pr
+general_ght_large.pull_requests as pr
 left join
-general_ght.pull_request_actions_agg as praa
+general_ght_large.pull_request_actions_agg as praa
 on
 pr.id = praa.pull_request_id
 left join
-general_ght.pull_request_comments_agg as prca
+general_ght_large.pull_request_comments_agg as prca
 on
 pr.id = prca.pull_request_id
 left join
-general_ght.pull_request_commits_agg as pr_commits
+general_ght_large.pull_request_commits_agg as pr_commits
 on
 pr.id = pr_commits.pull_request_id
 ;
 
-drop table if exists general_ght.pull_request_actions_agg;
-drop table if exists general_ght.pull_request_comments_agg;
-drop table if exists general_ght.pull_request_commits_agg;
+drop table if exists general_ght_large.pull_request_actions_agg;
+drop table if exists general_ght_large.pull_request_comments_agg;
+drop table if exists general_ght_large.pull_request_commits_agg;
 
 
-drop table if exists general_ght.pull_request_commit_files;
+drop table if exists general_ght_large.pull_request_commit_files;
 
 create table
-general_ght.pull_request_commit_files
+general_ght_large.pull_request_commit_files
 as
 select
 prc.*
 , cf.*
 from
-general_ght.pull_request_commits as prc
+general_ght_large.pull_request_commits as prc
 join
-general_ght.commits as gc
+general_ght_large.commits as gc
 on
 prc.commit_id = gc.id
 join

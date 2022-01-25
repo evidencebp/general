@@ -2,10 +2,10 @@
 
 
 # Developer profile
-drop table if exists general_ght.assignee_issues_profile;
+drop table if exists general_ght_large.assignee_issues_profile;
 
 create table
-general_ght.assignee_issues_profile
+general_ght_large.assignee_issues_profile
 as
 select
 assignee_id
@@ -26,19 +26,19 @@ assignee_id
 , avg( created_to_assigned_minutes ) as created_to_assigned_minutes
 , avg( created_to_closed_minutes ) as created_to_closed_minutes
 from
-general_ght.enhanced_issues as ie
+general_ght_large.enhanced_issues as ie
 join
-general_ght.projects as p
+general_ght_large.projects as p
 on
 ie.repo_id = p.id
 group by
 assignee_id
 ;
 
-drop table if exists general_ght.opener_pull_requests_profile;
+drop table if exists general_ght_large.opener_pull_requests_profile;
 
 create table
-general_ght.opener_pull_requests_profile
+general_ght_large.opener_pull_requests_profile
 as
 select
 opened_by
@@ -54,9 +54,9 @@ opened_by
 , avg(first_commit_to_merge_minutes) as first_commit_to_merge_minutes
 , 1.0*sum(if(days_to_first_bug <=7, 1,0))/sum(1) as sloppy_pr_ratio
 from
-general_ght.projects as p
+general_ght_large.projects as p
 join
-general_ght.enhanced_pull_requests as epr
+general_ght_large.enhanced_pull_requests as epr
 on
 p.id = epr.base_repo_id
 group by
@@ -64,10 +64,10 @@ opened_by
 ;
 
 
-drop table if exists general_ght.dev_profile;
+drop table if exists general_ght_large.dev_profile;
 
 create table
-general_ght.dev_profile
+general_ght_large.dev_profile
 as
 select
 dp.*
@@ -100,31 +100,31 @@ dp.*
 , prp.first_commit_to_merge_minutes
 , prp.sloppy_pr_ratio
 from
-general.developer_profile as dp
+general_large.developer_profile as dp
 left join
-general_ght.developer_matching as dm
+general_ght_large.developer_matching as dm
 on
 dp.author_email = dm.author_email
 left join
-general_ght.assignee_issues_profile as ip
+general_ght_large.assignee_issues_profile as ip
 on
 dm.author_id = ip.assignee_id
 left join
-general_ght.opener_pull_requests_profile as prp
+general_ght_large.opener_pull_requests_profile as prp
 on
 dm.author_id = prp.opened_by
 ;
 
-drop table if exists general_ght.assignee_issues_profile;
-drop table if exists general_ght.opener_pull_requests_profile;
+drop table if exists general_ght_large.assignee_issues_profile;
+drop table if exists general_ght_large.opener_pull_requests_profile;
 
 ####
 
 # Developer repo
-drop table if exists general_ght.assignee_repo_issues_profile;
+drop table if exists general_ght_large.assignee_repo_issues_profile;
 
 create table
-general_ght.assignee_repo_issues_profile
+general_ght_large.assignee_repo_issues_profile
 as
 select
 p.repo_name as repo_name
@@ -146,9 +146,9 @@ p.repo_name as repo_name
 , avg( created_to_assigned_minutes ) as created_to_assigned_minutes
 , avg( created_to_closed_minutes ) as created_to_closed_minutes
 from
-general_ght.enhanced_issues as ie
+general_ght_large.enhanced_issues as ie
 join
-general_ght.projects as p
+general_ght_large.projects as p
 on
 ie.repo_id = p.id
 group by
@@ -156,10 +156,10 @@ p.repo_name
 , assignee_id
 ;
 
-drop table if exists general_ght.opener_repo_pull_requests_profile;
+drop table if exists general_ght_large.opener_repo_pull_requests_profile;
 
 create table
-general_ght.opener_repo_pull_requests_profile
+general_ght_large.opener_repo_pull_requests_profile
 as
 select
 p.repo_name as repo_name
@@ -176,9 +176,9 @@ p.repo_name as repo_name
 , avg(first_commit_to_merge_minutes) as first_commit_to_merge_minutes
 , 1.0*sum(if(days_to_first_bug <=7, 1,0))/sum(1) as sloppy_pr_ratio
 from
-general_ght.projects as p
+general_ght_large.projects as p
 join
-general_ght.enhanced_pull_requests as epr
+general_ght_large.enhanced_pull_requests as epr
 on
 p.id = epr.base_repo_id
 group by
@@ -187,10 +187,10 @@ p.repo_name
 ;
 
 
-drop table if exists general_ght.dev_repo_profile;
+drop table if exists general_ght_large.dev_repo_profile;
 
 create table
-general_ght.dev_repo_profile
+general_ght_large.dev_repo_profile
 as
 select
 dp.*
@@ -223,31 +223,31 @@ dp.*
 , prp.first_commit_to_merge_minutes
 , prp.sloppy_pr_ratio
 from
-general.developer_per_repo_profile as dp
+general_large.developer_per_repo_profile as dp
 left join
-general_ght.projects as p
+general_ght_large.projects as p
 on
 dp.repo_name = p.repo_name
 left join
-general_ght.developer_matching as dm
+general_ght_large.developer_matching as dm
 on
 dp.author_email = dm.author_email
 left join
-general_ght.assignee_repo_issues_profile as ip
+general_ght_large.assignee_repo_issues_profile as ip
 on
 p.repo_name = ip.repo_name
 and
 dm.author_id = ip.assignee_id
 left join
-general_ght.opener_repo_pull_requests_profile as prp
+general_ght_large.opener_repo_pull_requests_profile as prp
 on
 p.repo_name = prp.repo_name
 and
 dm.author_id = prp.opened_by
 ;
 
-drop table if exists general_ght.assignee_repo_issues_profile;
-drop table if exists general_ght.opener_repo_pull_requests_profile;
+drop table if exists general_ght_large.assignee_repo_issues_profile;
+drop table if exists general_ght_large.opener_repo_pull_requests_profile;
 
 
 # Developer repo per year
@@ -255,10 +255,10 @@ drop table if exists general_ght.opener_repo_pull_requests_profile;
 
 ##### Repo properties per year
 
-drop table if exists general_ght.assignee_issues_profile_per_year;
+drop table if exists general_ght_large.assignee_issues_profile_per_year;
 
 create table
-general_ght.assignee_issues_profile_per_year
+general_ght_large.assignee_issues_profile_per_year
 as
 select
 p.repo_name as repo_name
@@ -300,13 +300,13 @@ p.repo_name as repo_name
 , avg( created_to_closed_minutes ) as created_to_closed_minutes
 
 from
-general.repo_properties_per_year as rpy
+general_large.repo_properties_per_year as rpy
 join
-general_ght.projects as p
+general_ght_large.projects as p
 on
 rpy.repo_name = p.repo_name
 join
-general_ght.enhanced_issues as ie
+general_ght_large.enhanced_issues as ie
 on
 ie.repo_id = p.id
 group by
@@ -317,10 +317,10 @@ p.repo_name
 
 
 
-drop table if exists general_ght.opener_pull_requests_profile_per_year;
+drop table if exists general_ght_large.opener_pull_requests_profile_per_year;
 
 create table
-general_ght.opener_pull_requests_profile_per_year
+general_ght_large.opener_pull_requests_profile_per_year
 as
 select
 p.repo_name as repo_name
@@ -350,13 +350,13 @@ p.repo_name as repo_name
  and days_to_first_bug <=7, 1,0))/sum(if(extract(year from epr.created_at) = rpy.year,1, 0))
 , null) as sloppy_pr_ratio
 from
-general.repo_properties_per_year as rpy
+general_large.repo_properties_per_year as rpy
 join
-general_ght.projects as p
+general_ght_large.projects as p
 on
 rpy.repo_name = p.repo_name
 join
-general_ght.enhanced_pull_requests as epr
+general_ght_large.enhanced_pull_requests as epr
 on
 p.id = epr.base_repo_id
 group by
@@ -366,11 +366,11 @@ p.repo_name
 ;
 
 
-drop table if exists general_ght.dev_repo_properties_per_year;
+drop table if exists general_ght_large.dev_repo_properties_per_year;
 
 
 create table
-general_ght.dev_repo_properties_per_year
+general_ght_large.dev_repo_properties_per_year
 as
 select
 dp.*
@@ -403,13 +403,13 @@ dp.*
 , prp.first_commit_to_merge_minutes
 , prp.sloppy_pr_ratio
 from
-general.developer_per_repo_profile_per_year as dp
+general_large.developer_per_repo_profile_per_year as dp
 left join
-general_ght.developer_matching as dm
+general_ght_large.developer_matching as dm
 on
 dp.author_email = dm.author_email
 left join
-general_ght.assignee_issues_profile_per_year as ip
+general_ght_large.assignee_issues_profile_per_year as ip
 on
 dm.author_id = ip.assignee_id
 and
@@ -417,7 +417,7 @@ dp.repo_name = ip.repo_name
 and
 dp.year = ip.year
 left join
-general_ght.opener_pull_requests_profile_per_year as prp
+general_ght_large.opener_pull_requests_profile_per_year as prp
 on
 dm.author_id = prp.opened_by
 and
@@ -426,5 +426,5 @@ and
 dp.year = prp.year
 ;
 
-drop table if exists general_ght.assignee_issues_profile_per_year;
-drop table if exists general_ght.opener_pull_requests_profile_per_year;
+drop table if exists general_ght_large.assignee_issues_profile_per_year;
+drop table if exists general_ght_large.opener_pull_requests_profile_per_year;
