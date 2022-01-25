@@ -1,10 +1,10 @@
 # File properties per year
 
-drop table if exists general.file_properties_per_year;
+drop table if exists general_large.file_properties_per_year;
 
 
 create table
-general.file_properties_per_year
+general_large.file_properties_per_year
 as
 select
 cf.repo_name as repo_name
@@ -83,9 +83,9 @@ as no_test_refactor_rate
 , count(distinct if(is_security, ec.commit, null))/count(distinct ec.commit) as security_rate
 
 from
-general.commits_files as cf
+general_large.commits_files as cf
 join
-general.enhanced_commits as ec
+general_large.enhanced_commits as ec
 on
 cf.commit = ec.commit and cf.repo_name = ec.repo_name
 and extract( year from cf.commit_month) =  extract( year from ec.commit_month)
@@ -96,9 +96,9 @@ repo_name
 ;
 
 
-drop table if exists general.file_testing_pair_involvement_per_year;
+drop table if exists general_large.file_testing_pair_involvement_per_year;
 
-create table general.file_testing_pair_involvement_per_year
+create table general_large.file_testing_pair_involvement_per_year
 as
 select
 repo_name
@@ -112,19 +112,19 @@ repo_name
     , 1.0*sum(if(test_involved and is_refactor, 1,0) )/sum(if(is_refactor, 1,0))
     , null) as refactor_testing_involved_prob
 from
-general.testing_pairs_commits
+general_large.testing_pairs_commits
 group by
 repo_name
 , file
 , year
 ;
 
-update general.file_properties_per_year as fp
+update general_large.file_properties_per_year as fp
 set testing_involved_prob = aux.testing_involved_prob
 , corrective_testing_involved_prob = aux.corrective_testing_involved_prob
 , refactor_testing_involved_prob = aux.refactor_testing_involved_prob
 from
-general.file_testing_pair_involvement_per_year as aux
+general_large.file_testing_pair_involvement_per_year as aux
 where
 fp.repo_name = aux.repo_name
 and
@@ -133,4 +133,4 @@ and
 fp.year = aux.year
 ;
 
-drop table if exists general.file_testing_pair_involvement_per_year;
+drop table if exists general_large.file_testing_pair_involvement_per_year;

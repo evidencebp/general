@@ -2,10 +2,10 @@
 # TODO - check if year is handled well
 # TODO - Check partitioning
 
-drop table if exists general.component_familiarity_same_month;
+drop table if exists general_large.component_familiarity_same_month;
 
 create table
-general.component_familiarity_same_month
+general_large.component_familiarity_same_month
 partition by
 commit_month
 cluster by
@@ -29,9 +29,9 @@ as max_author_commit_timestamp
     , if(cur_files_history.Author_email = cur_files.Author_email, cur_files_history.commit_timestamp, null)
         , minute)) as touched_by_author_minutes_ago
 from
-general.commits_files as cur_files
+general_large.commits_files as cur_files
 left join
-general.commits_files as cur_files_history
+general_large.commits_files as cur_files_history
 on
 cur_files_history.commit_month = cur_files.commit_month
 and
@@ -46,11 +46,11 @@ repo_name
 , cur_files.file
 ;
 
-drop table if exists general.component_familiarity_by_author_and_month;
+drop table if exists general_large.component_familiarity_by_author_and_month;
 
 
 create table
-general.component_familiarity_by_author_and_month
+general_large.component_familiarity_by_author_and_month
 partition by
 commit_month
 cluster by
@@ -66,7 +66,7 @@ repo_name
 , count(distinct if(is_corrective, commit, null)) as corrective_commits
 , 1.253*count(distinct if(is_corrective, commit, null))/count(distinct commit) -0.053 as ccp
 from
-general.commits_files
+general_large.commits_files
 group by
 repo_name
 , file
@@ -75,10 +75,10 @@ repo_name
 ;
 
 
-drop table if exists general.component_familiarity_by_prev_months;
+drop table if exists general_large.component_familiarity_by_prev_months;
 
 create table
-general.component_familiarity_by_prev_months
+general_large.component_familiarity_by_prev_months
 partition by
 commit_month
 cluster by
@@ -102,15 +102,15 @@ cur_files.repo_name
 as max_author_commit_timestamp
 , max(cast(FORMAT_DATE('%Y-%m-01', DATE(cur_files.commit_timestamp)) as date)) as  commit_month
 from
-general.commits_files as cur_files
+general_large.commits_files as cur_files
 join
-general.enhanced_commits as cd
+general_large.enhanced_commits as cd
 on
 cur_files.repo_name = cd.repo_name
 and
 cur_files.commit = cd.commit
 left join
-general.component_familiarity_by_author_and_month as cur_files_history
+general_large.component_familiarity_by_author_and_month as cur_files_history
 on
 cur_files_history.commit_month < cur_files.commit_month
 and
@@ -127,11 +127,11 @@ repo_name
 
 
 
-drop table if exists general.component_familiarity_joint;
+drop table if exists general_large.component_familiarity_joint;
 
 
 create table
-general.component_familiarity_joint
+general_large.component_familiarity_joint
 partition by
 commit_month
 cluster by
@@ -172,9 +172,9 @@ as prev_months_max_author_commit_timestamp
 
 , max(cast(FORMAT_DATE('%Y-%m-01', DATE(cur_files.commit_timestamp)) as date)) as  commit_month
 from
-general.component_familiarity_by_prev_months as cur_files
+general_large.component_familiarity_by_prev_months as cur_files
 left join
-general.commits_files as cur_files_history
+general_large.commits_files as cur_files_history
 on
 cur_files_history.commit_month = cur_files.commit_month
 and
@@ -190,11 +190,11 @@ repo_name
 ;
 
 
-drop table if exists general.component_familiarity;
+drop table if exists general_large.component_familiarity;
 
 
 create table
-general.component_familiarity
+general_large.component_familiarity
 partition by
 commit_month
 cluster by
@@ -217,14 +217,14 @@ repo_name
 , least( same_month_touched_minutes_ago, prev_month_touched_minutes_ago ) as touched_minutes_ago
 , least( same_month_touched_by_author_minutes_ago, prev_month_touched_by_author_minutes_ago ) as author_touched_minutes_ago
 from
-general.component_familiarity_joint
+general_large.component_familiarity_joint
 ;
 
 
-drop table if exists general.recent_component_familiarity_by_dev;
+drop table if exists general_large.recent_component_familiarity_by_dev;
 
 create table
-general.recent_component_familiarity_by_dev
+general_large.recent_component_familiarity_by_dev
 as
 select
 repo_name
@@ -234,7 +234,7 @@ repo_name
 , min(cur_files.commit_timestamp) as min_commit_timestamp
 , max(cur_files.commit_timestamp) as max_commit_timestamp
 from
-general.commits_files as cur_files
+general_large.commits_files as cur_files
 where
 cur_files.commit_timestamp < TIMESTAMP_ADD(CURRENT_TIMESTAMP(), INTERVAL -30 DAY)
 group by
@@ -243,10 +243,10 @@ repo_name
 , Author_email
 ;
 
-drop table if exists general.recent_component_familiarity;
+drop table if exists general_large.recent_component_familiarity;
 
 create table
-general.recent_component_familiarity
+general_large.recent_component_familiarity
 as
 select
 repo_name
@@ -257,7 +257,7 @@ repo_name
 , min(cur_files.commit_timestamp) as min_commit_timestamp
 , max(cur_files.commit_timestamp) as max_commit_timestamp
 from
-general.commits_files as cur_files
+general_large.commits_files as cur_files
 where
 cur_files.commit_timestamp < TIMESTAMP_ADD(CURRENT_TIMESTAMP(), INTERVAL -30 DAY)
 group by

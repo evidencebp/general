@@ -1,8 +1,8 @@
 # commit_size.sql
-drop table if exists general.commit_size;
+drop table if exists general_large.commit_size;
 
 create table
-general.commit_size
+general_large.commit_size
 as
 Select
 repo_name
@@ -16,24 +16,24 @@ repo_name
 , count(distinct case when code_extension and not is_test then file else null end) as code_non_test_files
 , max(commit_month) as  commit_month
 from
-general.commits_files
+general_large.commits_files
 group by
 repo_name
 , commit
 ;
 
 
-UPDATE  general.enhanced_commits AS ec
+UPDATE  general_large.enhanced_commits AS ec
 SET
 ec.files = cs.files
 , ec.non_test_files = cs.non_test_files
 , ec.code_files = cs.code_files
 , ec.code_non_test_files = cs.code_non_test_files
-FROM general.commit_size as cs
+FROM general_large.commit_size as cs
 WHERE
 ec.repo_name =  cs.repo_name
 and
 ec.commit =  cs.commit
 ;
 
-drop table if exists general.commit_size;
+drop table if exists general_large.commit_size;

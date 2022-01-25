@@ -1,18 +1,18 @@
 # general - testing pairs
 
-drop table if exists general.testing_pairs;
+drop table if exists general_large.testing_pairs;
 
 create table
-general.testing_pairs
+general_large.testing_pairs
 as
 select
 tested.repo_name as repo_name
 , tested.path as tested_file
 , testing.path as testing_file
 from
-general.files as tested
+general_large.files as tested
 join
-general.files as testing
+general_large.files as testing
 on
 tested.repo_name = testing.repo_name
 and
@@ -80,23 +80,23 @@ SELECT file
 FROM tab as testing
 ;
 
-drop table if exists general.testing_pairs_commits;
+drop table if exists general_large.testing_pairs_commits;
 
-create table general.testing_pairs_commits
+create table general_large.testing_pairs_commits
 as
 select
 cf.*
 , cf_test_lookup.file is not null as test_involved
 from
-general.commits_files as cf
+general_large.commits_files as cf
 join
-general.testing_pairs as pair
+general_large.testing_pairs as pair
 on
 cf.repo_name = pair.repo_name
 and
 cf.file = pair.tested_file
 left join
-general.commits_files as cf_test_lookup
+general_large.commits_files as cf_test_lookup
 on
 cf.repo_name = cf_test_lookup.repo_name
 and
@@ -104,69 +104,3 @@ cf.commit = cf_test_lookup.commit
 and
 pair.testing_file = cf_test_lookup.file
 ;
-
-# Hunting false negatives
-select
-testing.repo_name
-, testing.file
-, REGEXP_REPLACE(lower(testing.file), '([a-z0-9-]*test(er|s|ting)?[a-z0-9-]*|_|-|/)', '') as cannon_name
-from
-general.file_properties as testing
-left join
-general.testing_pairs as pairs
-on
-testing.repo_name = pairs.repo_name
-and
-testing.file = pairs.testing_file
-where
-testing.is_test
-and
-testing.code_extension
-and
-pairs.testing_file is null
-;
-
-select
-count(distinct concat(testing.repo_name, testing.file)) as testing_files
-, count(distinct if(pairs.testing_file is null, null, concat(testing.repo_name, testing.file))) as matched_testing_files
-, 1.0*count(distinct if(pairs.testing_file is null, null, concat(testing.repo_name, testing.file)))
-    /count(distinct concat(testing.repo_name, testing.file)) as match_ratio
-from
-general.file_properties as testing
-left join
-general.testing_pairs as pairs
-on
-testing.repo_name = pairs.repo_name
-and
-testing.file = pairs.testing_file
-where
-testing.is_test
-and
-testing.code_extension
-;
-
-select
-testing.repo_name as repo_name
-, count(distinct concat(testing.repo_name, testing.file)) as testing_files
-, count(distinct if(pairs.testing_file is null, null, concat(testing.repo_name, testing.file))) as matched_testing_files
-, 1.0*count(distinct if(pairs.testing_file is null, null, concat(testing.repo_name, testing.file)))
-    /count(distinct concat(testing.repo_name, testing.file)) as match_ratio
-from
-general.file_properties as testing
-left join
-general.testing_pairs as pairs
-on
-testing.repo_name = pairs.repo_name
-and
-testing.file = pairs.testing_file
-where
-testing.is_test
-and
-testing.code_extension
-group by
-testing.repo_name
-order by
-match_ratio
-;
-
-
