@@ -37,3 +37,6 @@ raw.reverted_commit = reverted.commit
 and
 raw.repo_name = reverted.repo_name
 ;
+
+
+drop table if exists general_large.reverted_commits_raw;
