@@ -116,6 +116,7 @@ c.*
 , False as is_negative_sentiment
 , False as is_performance
 , False as is_security
+, False as is_typo
 # The values of the columns below will be overridden later
 , -1 as files
 , -1 as non_test_files
@@ -186,7 +187,7 @@ true
 update
 general_large.enhanced_commits
 set
-is_cursing = (general.bq_core_cursing(message) > 0)
+is_cursing = (general.bq_swearing(message) > 0)
 where
 true
 ;
@@ -219,6 +220,14 @@ update
 general_large.enhanced_commits
 set
 is_security = general.bq_security(message) > 0
+where
+true
+;
+
+update
+general_large.enhanced_commits
+set
+is_typo = general.bq_typo(message) > 0
 where
 true
 ;
