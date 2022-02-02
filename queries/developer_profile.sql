@@ -1,9 +1,9 @@
 ##### Creating developer_profile
 
-drop table if exists general_large.developer_profile;
+drop table if exists general.developer_profile;
 
 create table
-general_large.developer_profile
+general.developer_profile
 as
 select
 author_email
@@ -154,6 +154,12 @@ as no_test_refactor_rate
 , sum(if(general.bq_abstraction(lower(message)) > 0, 1, 0)) as textual_abstraction_commits
 , 1.0*sum(if(general.bq_abstraction(lower(message)) > 0, 1, 0))/count(*) as textual_abstraction_commits_rate
 
+, avg(cast(ec.is_typo as int64)) as typo_rate
+
+, sum(if(cast(ec.is_corrective as int64) + cast(ec.is_adaptive as int64) + cast(ec.is_refactor as int64) > 1,1,0))/count(distinct ec.commit) as tangling_rate
+, sum(if(cast(ec.is_corrective as int64) + cast(ec.is_adaptive as int64) + cast(ec.is_refactor as int64) = 3,1,0))/count(distinct ec.commit) as bingo_rate
+
+
 , -1.0 as testing_involved_prob
 , -1.0 as corrective_testing_involved_prob
 , -1.0 as refactor_testing_involved_prob
@@ -169,14 +175,14 @@ as no_test_refactor_rate
 # Join time relative to project creation
 # Percent of effective refactors
 from
-general_large.enhanced_commits as ec
+general.enhanced_commits as ec
 #where
 #commit_timestamp >= TIMESTAMP_ADD(current_timestamp(), INTERVAL -365 DAY)
 group by
 author_email
 ;
 
-update general_large.developer_profile
+update general.developer_profile
 set days_entropy = - (case when Sunday_prob > 0 then Sunday_prob*log(Sunday_prob,2) else 0 end
                         + case when Monday_prob > 0 then Monday_prob*log(Monday_prob,2) else 0 end
                         + case when Tuesday_prob > 0 then Tuesday_prob*log(Tuesday_prob,2) else 0 end
@@ -190,37 +196,37 @@ set days_entropy = - (case when Sunday_prob > 0 then Sunday_prob*log(Sunday_prob
 where true
 ;
 
-drop table if exists general_large.author_created_files;
+drop table if exists general.author_created_files;
 
 create table
-general_large.author_created_files
+general.author_created_files
 as
 select
 creator_email
 , count(distinct file) as files
 , general.bq_ccp_mle(1.0*sum(corrective_commits)/sum(commits)) as ccp
 from
-general_large.file_properties
+general.file_properties
 group by
 creator_email
 ;
 
-update general_large.developer_profile as dp
+update general.developer_profile as dp
 set files_created = acf.files, files_created_ccp = acf.ccp
 from
-general_large.author_created_files as acf
+general.author_created_files as acf
 where
 dp.author_email = acf.creator_email
 ;
 
-drop table if exists general_large.author_created_files;
+drop table if exists general.author_created_files;
 
 
 
-drop table if exists general_large.author_owned_files;
+drop table if exists general.author_owned_files;
 
 create table
-general_large.author_owned_files
+general.author_owned_files
 as
 select
 Author_email
@@ -231,33 +237,33 @@ Author_email
     , sum(bug_prev_touch_ago*corrective_commits)/sum(corrective_commits)
      , null) as bug_prev_touch_ago
 from
-general_large.file_properties
+general.file_properties
 where
 authors = 1
 group by
 Author_email
 ;
 
-update general_large.developer_profile as dp
+update general.developer_profile as dp
 set
 files_owned = aof.files
 , files_owned_ccp = aof.ccp
 , prev_touch_ago = aof.prev_touch_ago
 , bug_prev_touch_ago = aof.bug_prev_touch_ago
 from
-general_large.author_owned_files as aof
+general.author_owned_files as aof
 where
 dp.author_email = aof.Author_email
 ;
 
-drop table if exists general_large.author_owned_files;
+drop table if exists general.author_owned_files;
 
 
 
-drop table if exists general_large.author_edited_files;
+drop table if exists general.author_edited_files;
 
 create table
-general_large.author_edited_files
+general.author_edited_files
 as
 select
 author_email
@@ -265,29 +271,29 @@ author_email
 , general.bq_ccp_mle(1.0*count(distinct if(is_corrective, commit, null))/count(distinct commit)) as ccp
 , sum(if(is_test, 1,0))/count(*)  as tests_presence
 from
-general_large.commits_files
+general.commits_files
 group by
 author_email
 ;
 
 
-update general_large.developer_profile as dp
+update general.developer_profile as dp
 set files_edited = aef.files, files_edited_ccp = aef.ccp, tests_presence = aef.tests_presence
 from
-general_large.author_edited_files as aef
+general.author_edited_files as aef
 where
 dp.author_email = aef.author_email
 ;
-drop table if exists general_large.author_edited_files;
+drop table if exists general.author_edited_files;
 
-drop table if exists general_large.developer_per_repo_profile;
+drop table if exists general.developer_per_repo_profile;
 
 
-drop table if exists general_large.dev_length_properties;
+drop table if exists general.dev_length_properties;
 
 
 create table
-general_large.dev_length_properties
+general.dev_length_properties
 as
 select
 creator_email as author_email
@@ -318,7 +324,7 @@ creator_email as author_email
        , null)) as capped_sum_code_file_size
 
 from
-general_large.file_properties as fp
+general.file_properties as fp
 where
 authors = 1
 group by
@@ -326,7 +332,7 @@ author_email
 ;
 
 
-update general_large.developer_profile as rp
+update general.developer_profile as rp
 set
 avg_file_size = rl.avg_file_size
 , capped_avg_file_size = rl.capped_avg_file_size
@@ -339,32 +345,32 @@ avg_file_size = rl.avg_file_size
 , capped_sum_code_file_size = rl.capped_sum_code_file_size
 
 from
-general_large.dev_length_properties as rl
+general.dev_length_properties as rl
 where
 rp.author_email = rl.author_email
 ;
 
-drop table if exists general_large.dev_length_properties;
+drop table if exists general.dev_length_properties;
 
-drop table if exists general_large.author_owned_files_revert_time;
+drop table if exists general.author_owned_files_revert_time;
 
 create table
-general_large.author_owned_files_revert_time
+general.author_owned_files_revert_time
 as
 select
 cf.Author_email
 , avg(minutes_to_revert) as minutes_to_revert
 , count(distinct cf.commit) as reverted_commits
 from
-general_large.file_properties as fp
+general.file_properties as fp
 join
-general_large.commits_files as cf
+general.commits_files as cf
 on
 fp.repo_name = cf.repo_name
 and
 fp.file = cf.file
 join
-general_large.reverted_commits as rc
+general.reverted_commits as rc
 on
 cf.repo_name = rc.repo_name
 and
@@ -376,33 +382,33 @@ cf.Author_email
 ;
 
 
-update general_large.developer_profile as rp
+update general.developer_profile as rp
 set
 minutes_to_revert = aux.minutes_to_revert
 , reverted_ratio = 1.0*aux.reverted_commits/rp.commits
 from
-general_large.author_owned_files_revert_time as aux
+general.author_owned_files_revert_time as aux
 where
 rp.Author_email = aux.Author_email
 ;
 
-update general_large.developer_profile as rp
+update general.developer_profile as rp
 set minutes_to_revert = Null
 where
 minutes_to_revert = -1.0
 ;
 
-update general_large.developer_profile as rp
+update general.developer_profile as rp
 set reverted_ratio = Null
 where
 reverted_ratio = -1.0
 ;
 
-drop table if exists general_large.author_owned_files_revert_time;
+drop table if exists general.author_owned_files_revert_time;
 
-drop table if exists general_large.dev_testing_pair_involvement;
+drop table if exists general.dev_testing_pair_involvement;
 
-create table general_large.dev_testing_pair_involvement
+create table general.dev_testing_pair_involvement
 as
 select
 author_email
@@ -414,20 +420,20 @@ author_email
     , 1.0*sum(if(test_involved and is_refactor, 1,0) )/sum(if(is_refactor, 1,0))
     , null) as refactor_testing_involved_prob
 from
-general_large.testing_pairs_commits
+general.testing_pairs_commits
 group by
 author_email
 ;
 
-update general_large.developer_profile as dp
+update general.developer_profile as dp
 set testing_involved_prob = aux.testing_involved_prob
 , corrective_testing_involved_prob = aux.corrective_testing_involved_prob
 , refactor_testing_involved_prob = aux.refactor_testing_involved_prob
 from
-general_large.dev_testing_pair_involvement as aux
+general.dev_testing_pair_involvement as aux
 where
 dp.author_email = aux.author_email
 ;
 
-drop table if exists general_large.dev_testing_pair_involvement;
+drop table if exists general.dev_testing_pair_involvement;
 

@@ -1,10 +1,10 @@
 # File properties per year
 
-drop table if exists general_large.file_properties_per_year;
+drop table if exists general.file_properties_per_year;
 
 
 create table
-general_large.file_properties_per_year
+general.file_properties_per_year
 as
 select
 cf.repo_name as repo_name
@@ -74,6 +74,12 @@ as no_test_refactor_rate
 , sum(if(general.bq_abstraction(lower(message)) > 0, 1, 0)) as textual_abstraction_commits
 , 1.0*sum(if(general.bq_abstraction(lower(message)) > 0, 1, 0))/count(*) as textual_abstraction_commits_rate
 
+, avg(cast(ec.is_typo as int64)) as typo_rate
+
+, sum(if(cast(ec.is_corrective as int64) + cast(ec.is_adaptive as int64) + cast(ec.is_refactor as int64) > 1,1,0))/count(distinct ec.commit) as tangling_rate
+, sum(if(cast(ec.is_corrective as int64) + cast(ec.is_adaptive as int64) + cast(ec.is_refactor as int64) = 3,1,0))/count(distinct ec.commit) as bingo_rate
+
+
 , -1.0 as testing_involved_prob
 , -1.0 as corrective_testing_involved_prob
 , -1.0 as refactor_testing_involved_prob
@@ -83,9 +89,9 @@ as no_test_refactor_rate
 , count(distinct if(is_security, ec.commit, null))/count(distinct ec.commit) as security_rate
 
 from
-general_large.commits_files as cf
+general.commits_files as cf
 join
-general_large.enhanced_commits as ec
+general.enhanced_commits as ec
 on
 cf.commit = ec.commit and cf.repo_name = ec.repo_name
 and extract( year from cf.commit_month) =  extract( year from ec.commit_month)
@@ -96,9 +102,9 @@ repo_name
 ;
 
 
-drop table if exists general_large.file_testing_pair_involvement_per_year;
+drop table if exists general.file_testing_pair_involvement_per_year;
 
-create table general_large.file_testing_pair_involvement_per_year
+create table general.file_testing_pair_involvement_per_year
 as
 select
 repo_name
@@ -112,19 +118,19 @@ repo_name
     , 1.0*sum(if(test_involved and is_refactor, 1,0) )/sum(if(is_refactor, 1,0))
     , null) as refactor_testing_involved_prob
 from
-general_large.testing_pairs_commits
+general.testing_pairs_commits
 group by
 repo_name
 , file
 , year
 ;
 
-update general_large.file_properties_per_year as fp
+update general.file_properties_per_year as fp
 set testing_involved_prob = aux.testing_involved_prob
 , corrective_testing_involved_prob = aux.corrective_testing_involved_prob
 , refactor_testing_involved_prob = aux.refactor_testing_involved_prob
 from
-general_large.file_testing_pair_involvement_per_year as aux
+general.file_testing_pair_involvement_per_year as aux
 where
 fp.repo_name = aux.repo_name
 and
@@ -133,4 +139,4 @@ and
 fp.year = aux.year
 ;
 
-drop table if exists general_large.file_testing_pair_involvement_per_year;
+drop table if exists general.file_testing_pair_involvement_per_year;

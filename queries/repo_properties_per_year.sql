@@ -1,10 +1,10 @@
 # repo_properties_per_year.sql
 
-drop table if exists general_large.repo_properties_per_year;
+drop table if exists general.repo_properties_per_year;
 
 
 create table
-general_large.repo_properties_per_year
+general.repo_properties_per_year
 as
 select
 repo_name as repo_name
@@ -38,6 +38,13 @@ repo_name as repo_name
 , count(distinct Author_email) as authors
 , max(Author_email) as Author_email # Meaningful only when authors=1
 , avg(if(same_date_as_prev, duration, null)) as same_day_duration_avg
+
+
+, avg(cast(ec.is_typo as int64)) as typo_rate
+
+, sum(if(cast(ec.is_corrective as int64) + cast(ec.is_adaptive as int64) + cast(ec.is_refactor as int64) > 1,1,0))/count(distinct ec.commit) as tangling_rate
+, sum(if(cast(ec.is_corrective as int64) + cast(ec.is_adaptive as int64) + cast(ec.is_refactor as int64) = 3,1,0))/count(distinct ec.commit) as bingo_rate
+
 
 , 0 as files_edited
 
@@ -155,16 +162,16 @@ as no_test_refactor_rate
 , count(distinct if(is_security, ec.commit, null))/count(distinct ec.commit) as security_rate
 
 from
-general_large.enhanced_commits as ec
+general.enhanced_commits as ec
 group by
 repo_name
 , year
 ;
 
-drop table if exists general_large.created_files_by_repo_by_year;
+drop table if exists general.created_files_by_repo_by_year;
 
 create table
-general_large.created_files_by_repo_by_year
+general.created_files_by_repo_by_year
 as
 select
 repo_name
@@ -172,30 +179,30 @@ repo_name
 , count(distinct file) as files
 , general.bq_ccp_mle(1.0*sum(corrective_commits)/sum(commits)) as ccp
 from
-general_large.file_properties
+general.file_properties
 group by
 repo_name
 , year
 ;
 
-update general_large.repo_properties_per_year as dp
+update general.repo_properties_per_year as dp
 set files_created = acf.files, files_created_ccp = acf.ccp
 from
-general_large.created_files_by_repo_by_year as acf
+general.created_files_by_repo_by_year as acf
 where
 dp.repo_name = acf.repo_name
 and
 dp.year = acf.year
 ;
 
-drop table if exists general_large.created_files_by_repo_by_year;
+drop table if exists general.created_files_by_repo_by_year;
 
 
 
-drop table if exists general_large.edited_files_by_year;
+drop table if exists general.edited_files_by_year;
 
 create table
-general_large.edited_files_by_year
+general.edited_files_by_year
 as
 select
  repo_name
@@ -204,31 +211,31 @@ select
 , general.bq_ccp_mle(1.0*count(distinct if(is_corrective, commit, null))/count(distinct commit)) as ccp
 , sum(if(is_test, 1,0))/count(*)  as tests_presence
 from
-general_large.commits_files
+general.commits_files
 group by
 repo_name
 , year
 ;
 
 
-update general_large.repo_properties_per_year as dp
+update general.repo_properties_per_year as dp
 set files_edited = aef.files, tests_presence = round(aef.tests_presence, 2)
 from
-general_large.edited_files_by_year as aef
+general.edited_files_by_year as aef
 where
 dp.repo_name = aef.repo_name
 and
 dp.year = aef.year
 ;
 
-drop table if exists general_large.edited_files_by_year;
+drop table if exists general.edited_files_by_year;
 
 
 
-drop table if exists general_large.files_survival_by_year;
+drop table if exists general.files_survival_by_year;
 
 create table
-general_large.files_survival_by_year
+general.files_survival_by_year
 as
 select
  repo_name
@@ -236,7 +243,7 @@ select
 , avg(TIMESTAMP_DIFF(max_commit_time, min_commit_time, DAY)) as survival_avg
 , avg(if(TIMESTAMP_DIFF(max_commit_time, min_commit_time, DAY) > 365, 1, 0)) as above_year_prob
 from
-general_large.file_properties
+general.file_properties
 where
 extract(year from min_commit_time)  < extract(year from CURRENT_DATE())
 group by
@@ -244,20 +251,20 @@ repo_name
 , extract(year from min_commit_time)
 ;
 
-update general_large.repo_properties_per_year as rp
+update general.repo_properties_per_year as rp
 set survival_avg = fs.survival_avg
 , above_year_prob = fs.above_year_prob
 from
-general_large.files_survival_by_year as fs
+general.files_survival_by_year as fs
 where
 rp.repo_name = fs.repo_name
 and
 rp.year = fs.year
 ;
 
-drop table if exists general_large.files_survival_by_year;
+drop table if exists general.files_survival_by_year;
 
-update general_large.repo_properties_per_year as rp
+update general.repo_properties_per_year as rp
 set survival_avg = Null
 , above_year_prob = Null
 where
@@ -266,29 +273,29 @@ and
 above_year_prob = 0.0
 ;
 
-update general_large.repo_properties_per_year as rp
+update general.repo_properties_per_year as rp
 set stars = Null, detection_efficiency = Null
 where
 True
 ;
 
-update general_large.repo_properties_per_year as rpy
+update general.repo_properties_per_year as rpy
 set detection_efficiency = case
 when r.stargazers_count >= 7481 then 'high'
 when rpy.tests_presence <= 0.01 then 'low'
 else 'medium'
 end
 from
-general_large.repos as r
+general.repos as r
 where
 rpy.repo_name = r.repo_name
 ;
 
-drop table if exists general_large.repo_length_properties_per_year;
+drop table if exists general.repo_length_properties_per_year;
 
 
 create table
-general_large.repo_length_properties_per_year
+general.repo_length_properties_per_year
 as
 select
 extract(year from min_commit_time) as year
@@ -321,13 +328,13 @@ extract(year from min_commit_time) as year
 
 from
 
-general_large.file_properties as fp
+general.file_properties as fp
 group by
 year
 , repo_name
 ;
 
-update general_large.repo_properties_per_year as rp
+update general.repo_properties_per_year as rp
 set avg_file_size = rly.avg_file_size
 , capped_avg_file_size = rly.capped_avg_file_size
 , avg_code_file_size = rly.avg_code_file_size
@@ -339,21 +346,21 @@ set avg_file_size = rly.avg_file_size
 , capped_sum_code_file_size = rly.capped_sum_code_file_size
 
 from
-general_large.repo_length_properties_per_year as rly
+general.repo_length_properties_per_year as rly
 where
 rp.repo_name = rly.repo_name
 and
 rp.year = rly.year
 ;
 
-drop table if exists general_large.repo_length_properties_per_year;
+drop table if exists general.repo_length_properties_per_year;
 
 
 
-drop table if exists general_large.repo_revert_time_per_year;
+drop table if exists general.repo_revert_time_per_year;
 
 create table
-general_large.repo_revert_time_per_year
+general.repo_revert_time_per_year
 as
 select
 extract(year from reverted_commit_timestamp	) as year
@@ -361,41 +368,41 @@ extract(year from reverted_commit_timestamp	) as year
 , avg(minutes_to_revert) as minutes_to_revert
 , count(distinct reverted_commit) as reverted_commits
 from
-general_large.reverted_commits as reverted
+general.reverted_commits as reverted
 group by
 year
 , repo_name
 ;
 
-update general_large.repo_properties_per_year as rp
+update general.repo_properties_per_year as rp
 set
 minutes_to_revert = aux.minutes_to_revert
 , reverted_ratio = 1.0*aux.reverted_commits/rp.commits
 from
-general_large.repo_revert_time_per_year as aux
+general.repo_revert_time_per_year as aux
 where
 rp.repo_name = aux.repo_name
 and
 rp.year = aux.year
 ;
 
-update general_large.repo_properties_per_year as rp
+update general.repo_properties_per_year as rp
 set minutes_to_revert = Null
 where
 minutes_to_revert = -1.0
 ;
 
-update general_large.repo_properties_per_year as rp
+update general.repo_properties_per_year as rp
 set reverted_ratio = Null
 where
 reverted_ratio = -1.0
 ;
 
-drop table if exists general_large.repo_revert_time_per_year;
+drop table if exists general.repo_revert_time_per_year;
 
-drop table if exists general_large.repo_testing_pair_involvement_per_year;
+drop table if exists general.repo_testing_pair_involvement_per_year;
 
-create table general_large.repo_testing_pair_involvement_per_year
+create table general.repo_testing_pair_involvement_per_year
 as
 select
 repo_name
@@ -408,30 +415,30 @@ repo_name
     , 1.0*sum(if(test_involved and is_refactor, 1,0) )/sum(if(is_refactor, 1,0))
     , null) as refactor_testing_involved_prob
 from
-general_large.testing_pairs_commits
+general.testing_pairs_commits
 group by
 repo_name
 , year
 ;
 
-update general_large.repo_properties_per_year as rp
+update general.repo_properties_per_year as rp
 set testing_involved_prob = aux.testing_involved_prob
 , corrective_testing_involved_prob = aux.corrective_testing_involved_prob
 , refactor_testing_involved_prob = aux.refactor_testing_involved_prob
 from
-general_large.repo_testing_pair_involvement_per_year as aux
+general.repo_testing_pair_involvement_per_year as aux
 where
 rp.repo_name = aux.repo_name
 and
 rp.year = aux.year
 ;
 
-drop table if exists general_large.repo_testing_pair_involvement_per_year;
+drop table if exists general.repo_testing_pair_involvement_per_year;
 
-drop table if exists general_large.repo_hotspots_rate_per_year;
+drop table if exists general.repo_hotspots_rate_per_year;
 
 create table
-general_large.repo_hotspots_rate_per_year
+general.repo_hotspots_rate_per_year
 as
 select
 repo_name
@@ -440,26 +447,26 @@ repo_name
     ,sum(if(ccp >= 0.33 and commits >= 10 and code_extension, 1,0))/sum(if(commits >= 10 and code_extension, 1,0))
     , null) as hotspots_rate
 from
-general_large.file_properties
+general.file_properties
 group by
 repo_name
 , year
 ;
 
-update general_large.repo_properties_per_year as rp
+update general.repo_properties_per_year as rp
 set hotspots_rate = aux.hotspots_rate
 from
-general_large.repo_hotspots_rate_per_year as aux
+general.repo_hotspots_rate_per_year as aux
 where
 rp.repo_name = aux.repo_name
 and
 rp.year = aux.year
 ;
 
-update general_large.repo_properties_per_year as rp
+update general.repo_properties_per_year as rp
 set hotspots_rate = Null
 where
 hotspots_rate = -1.0
 ;
 
-drop table if exists general_large.repo_hotspots_rate_per_year;
+drop table if exists general.repo_hotspots_rate_per_year;

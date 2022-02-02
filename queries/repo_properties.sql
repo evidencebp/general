@@ -2,11 +2,11 @@
 
 ##### Create Repo Properties
 
-drop table if exists general_large.repo_properties;
+drop table if exists general.repo_properties;
 
 
 create table
-general_large.repo_properties
+general.repo_properties
 as
 select
 repo_name as repo_name
@@ -83,6 +83,11 @@ as non_corrective_multiline_message_ratio
 
 # Density
 , count(distinct ec.commit_timestamp)/(1+TIMESTAMP_DIFF(max(ec.commit_timestamp), min(ec.commit_timestamp), day)) as commit_day_density
+
+, avg(cast(ec.is_typo as int64)) as typo_rate
+
+, sum(if(cast(ec.is_corrective as int64) + cast(ec.is_adaptive as int64) + cast(ec.is_refactor as int64) > 1,1,0))/count(distinct ec.commit) as tangling_rate
+, sum(if(cast(ec.is_corrective as int64) + cast(ec.is_adaptive as int64) + cast(ec.is_refactor as int64) = 3,1,0))/count(distinct ec.commit) as bingo_rate
 
 , 0.0 as survival_avg
 , 0.0 as above_year_prob
@@ -163,16 +168,16 @@ as no_test_refactor_rate
 , count(distinct if(is_security, ec.commit, null))/count(distinct ec.commit) as security_rate
 
 from
-general_large.enhanced_commits as ec
+general.enhanced_commits as ec
 group by
 repo_name
 ;
 
 
-drop table if exists general_large.edited_files;
+drop table if exists general.edited_files;
 
 create table
-general_large.edited_files
+general.edited_files
 as
 select
  repo_name
@@ -180,55 +185,55 @@ select
 , general.bq_ccp_mle(1.0*count(distinct if(is_corrective, commit, null))/count(distinct commit)) as ccp
 , sum(if(is_test, 1,0))/count(*)  as tests_presence
 from
-general_large.commits_files
+general.commits_files
 group by
 repo_name
 ;
 
 
-update general_large.repo_properties as dp
+update general.repo_properties as dp
 set files_edited = aef.files
 , files_created = aef.files
 , tests_presence = round(aef.tests_presence, 2)
 from
-general_large.edited_files as aef
+general.edited_files as aef
 where
 dp.repo_name = aef.repo_name
 ;
 
-drop table if exists general_large.edited_files;
+drop table if exists general.edited_files;
 
 
-drop table if exists general_large.files_survival;
+drop table if exists general.files_survival;
 
 create table
-general_large.files_survival
+general.files_survival
 as
 select
  repo_name
 , avg(TIMESTAMP_DIFF(max_commit_time, min_commit_time, DAY)) as survival_avg
 , avg(if(TIMESTAMP_DIFF(max_commit_time, min_commit_time, DAY) > 365, 1, 0)) as above_year_prob
 from
-general_large.file_properties
+general.file_properties
 where
 extract(year from min_commit_time)  < extract(year from CURRENT_DATE())
 group by
 repo_name
 ;
 
-update general_large.repo_properties as rp
+update general.repo_properties as rp
 set survival_avg = fs.survival_avg
 , above_year_prob = fs.above_year_prob
 from
-general_large.files_survival as fs
+general.files_survival as fs
 where
 rp.repo_name = fs.repo_name
 ;
 
-drop table if exists general_large.files_survival;
+drop table if exists general.files_survival;
 
 
-update general_large.repo_properties as rp
+update general.repo_properties as rp
 set
 stars = r.stargazers_count
 , language = r.language
@@ -246,19 +251,19 @@ end
 , Is_Company = r.Is_Company
 
 from
-general_large.repos as r
+general.repos as r
 where
 rp.repo_name = r.repo_name
 ;
 
-update general_large.repo_properties as dp
+update general.repo_properties as dp
 set stars = null
 where
 stars = -1
 ;
 
 
-update general_large.repo_properties as dp
+update general.repo_properties as dp
 set detection_efficiency = case
 when stars >= 7481 then 'high'
 when tests_presence <= 0.01 then 'low'
@@ -268,11 +273,11 @@ where
 True
 ;
 
-drop table if exists general_large.repo_length_properties;
+drop table if exists general.repo_length_properties;
 
 
 create table
-general_large.repo_length_properties
+general.repo_length_properties
 as
 select
 repo_name
@@ -303,13 +308,13 @@ repo_name
        , null)) as capped_sum_code_file_size
 
 from
-general_large.contents
+general.contents
 group by
 repo_name
 ;
 
 
-update general_large.repo_properties as rp
+update general.repo_properties as rp
 set
 avg_file_size = rl.avg_file_size
 , capped_avg_file_size = rl.capped_avg_file_size
@@ -322,56 +327,56 @@ avg_file_size = rl.avg_file_size
 , capped_sum_code_file_size = rl.capped_sum_code_file_size
 
 from
-general_large.repo_length_properties as rl
+general.repo_length_properties as rl
 where
 rp.repo_name = rl.repo_name
 ;
 
-drop table if exists general_large.repo_length_properties;
+drop table if exists general.repo_length_properties;
 
 
-drop table if exists general_large.repo_revert_time;
+drop table if exists general.repo_revert_time;
 
 create table
-general_large.repo_revert_time
+general.repo_revert_time
 as
 select
 repo_name
 , avg(minutes_to_revert) as minutes_to_revert
 , count(distinct reverted_commit) as reverted_commits
 from
-general_large.reverted_commits as reverted
+general.reverted_commits as reverted
 group by
 repo_name
 ;
 
-update general_large.repo_properties as rp
+update general.repo_properties as rp
 set
 minutes_to_revert = aux.minutes_to_revert
 , reverted_ratio = 1.0*aux.reverted_commits/rp.commits
 from
-general_large.repo_revert_time as aux
+general.repo_revert_time as aux
 where
 rp.repo_name = aux.repo_name
 ;
 
-update general_large.repo_properties as rp
+update general.repo_properties as rp
 set minutes_to_revert = Null
 where
 minutes_to_revert = -1.0
 ;
 
-update general_large.repo_properties as rp
+update general.repo_properties as rp
 set reverted_ratio = Null
 where
 reverted_ratio = -1.0
 ;
 
-drop table if exists general_large.repo_revert_time;
+drop table if exists general.repo_revert_time;
 
-drop table if exists general_large.repo_testing_pair_involvement;
+drop table if exists general.repo_testing_pair_involvement;
 
-create table general_large.repo_testing_pair_involvement
+create table general.repo_testing_pair_involvement
 as
 select
 repo_name
@@ -383,50 +388,50 @@ repo_name
     , 1.0*sum(if(test_involved and is_refactor, 1,0) )/sum(if(is_refactor, 1,0))
     , null) as refactor_testing_involved_prob
 from
-general_large.testing_pairs_commits
+general.testing_pairs_commits
 group by
 repo_name
 ;
 
-update general_large.repo_properties as rp
+update general.repo_properties as rp
 set testing_involved_prob = aux.testing_involved_prob
 , corrective_testing_involved_prob = aux.corrective_testing_involved_prob
 , refactor_testing_involved_prob = aux.refactor_testing_involved_prob
 from
-general_large.repo_testing_pair_involvement as aux
+general.repo_testing_pair_involvement as aux
 where
 rp.repo_name = aux.repo_name
 ;
 
-drop table if exists general_large.repo_testing_pair_involvement;
+drop table if exists general.repo_testing_pair_involvement;
 
-drop table if exists general_large.repo_content_abstraction;
+drop table if exists general.repo_content_abstraction;
 
-create table general_large.repo_content_abstraction
+create table general.repo_content_abstraction
 as
 SELECT
 cnt.repo_name as repo_name
 , 1.0*count(distinct if(general.bq_abstraction(lower(content)) > 0, path, null))/count(distinct path) as abs_content_ratio
  FROM
- general_large.contents as cnt
+ general.contents as cnt
 group by
 repo_name
 ;
 
-update general_large.repo_properties as rp
+update general.repo_properties as rp
 set abs_content_ratio = aux.abs_content_ratio
 from
-general_large.repo_content_abstraction as aux
+general.repo_content_abstraction as aux
 where
 rp.repo_name = aux.repo_name
 ;
 
-drop table if exists general_large.repo_content_abstraction;
+drop table if exists general.repo_content_abstraction;
 
-drop table if exists general_large.repo_hotspots_rate;
+drop table if exists general.repo_hotspots_rate;
 
 create table
-general_large.repo_hotspots_rate
+general.repo_hotspots_rate
 as
 select
 repo_name
@@ -434,23 +439,23 @@ repo_name
     ,sum(if(ccp >= 0.33 and commits >= 10 and code_extension, 1,0))/sum(if(commits >= 10 and code_extension, 1,0))
     , null) as hotspots_rate
 from
-general_large.file_properties
+general.file_properties
 group by
 repo_name
 ;
 
-update general_large.repo_properties as rp
+update general.repo_properties as rp
 set hotspots_rate = aux.hotspots_rate
 from
-general_large.repo_hotspots_rate as aux
+general.repo_hotspots_rate as aux
 where
 rp.repo_name = aux.repo_name
 ;
 
-update general_large.repo_properties as rp
+update general.repo_properties as rp
 set hotspots_rate = Null
 where
 hotspots_rate = -1.0
 ;
 
-drop table if exists general_large.repo_hotspots_rate;
+drop table if exists general.repo_hotspots_rate;

@@ -1,8 +1,8 @@
 # Repo productivity metrics
-drop table if exists general_large.repo_productivity_metrics;
+drop table if exists general.repo_productivity_metrics;
 
 create table
-general_large.repo_productivity_metrics
+general.repo_productivity_metrics
 as
 select
 repo_name
@@ -14,13 +14,13 @@ repo_name
             , if(commits < 1000, commits, 1000)
             , 0)) as involved_developers_capped_commits
 from
-general_large.developer_per_repo_profile
+general.developer_per_repo_profile
 group by
 repo_name
 ;
 
 
-update general_large.repo_properties as rp
+update general.repo_properties as rp
 set
 commits_per_developer = if(rp.authors > 0
                             , rp.commits/rp.authors
@@ -39,20 +39,20 @@ commits_per_developer = if(rp.authors > 0
                                         , aux.involved_developers_capped_commits/aux.involved_developers
                                         , null)
 from
-general_large.repo_productivity_metrics as aux
+general.repo_productivity_metrics as aux
 where
 rp.repo_name = aux.repo_name
 ;
 
 
-drop table if exists general_large.repo_productivity_metrics;
+drop table if exists general.repo_productivity_metrics;
 
 # Productivity metrics for repo_properties_per_year
 
-drop table if exists general_large.repo_productivity_metrics_per_year;
+drop table if exists general.repo_productivity_metrics_per_year;
 
 create table
-general_large.repo_productivity_metrics_per_year
+general.repo_productivity_metrics_per_year
 as
 select
 repo_name
@@ -65,13 +65,13 @@ repo_name
             , if(commits < 1000, commits, 1000)
             , 0)) as involved_developers_capped_commits
 from
-general_large.developer_per_repo_profile_per_year
+general.developer_per_repo_profile_per_year
 group by
 repo_name
 , year
 ;
 
-update general_large.repo_properties_per_year as rp
+update general.repo_properties_per_year as rp
 set
 commits_per_developer = if(rp.authors > 0
                             , rp.commits/rp.authors
@@ -90,11 +90,11 @@ commits_per_developer = if(rp.authors > 0
                                         , aux.involved_developers_capped_commits/aux.involved_developers
                                         , null)
 from
-general_large.repo_productivity_metrics_per_year as aux
+general.repo_productivity_metrics_per_year as aux
 where
 rp.repo_name = aux.repo_name
 and
 rp.year = aux.year
 ;
 
-drop table if exists general_large.repo_productivity_metrics_per_year;
+drop table if exists general.repo_productivity_metrics_per_year;

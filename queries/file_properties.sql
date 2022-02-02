@@ -1,11 +1,11 @@
 # file_properties.sql
 
 
-drop table if exists general_large.file_properties;
+drop table if exists general.file_properties;
 
 
 create table
-general_large.file_properties
+general.file_properties
 as
 select
 cf.repo_name as repo_name
@@ -77,6 +77,12 @@ as no_test_refactor_rate
 , sum(if(general.bq_abstraction(lower(message)) > 0, 1, 0)) as textual_abstraction_commits
 , 1.0*sum(if(general.bq_abstraction(lower(message)) > 0, 1, 0))/count(*) as textual_abstraction_commits_rate
 
+, avg(cast(ec.is_typo as int64)) as typo_rate
+
+, sum(if(cast(ec.is_corrective as int64) + cast(ec.is_adaptive as int64) + cast(ec.is_refactor as int64) > 1,1,0))/count(distinct ec.commit) as tangling_rate
+, sum(if(cast(ec.is_corrective as int64) + cast(ec.is_adaptive as int64) + cast(ec.is_refactor as int64) = 3,1,0))/count(distinct ec.commit) as bingo_rate
+
+
 , -1.0 as testing_involved_prob
 , -1.0 as corrective_testing_involved_prob
 , -1.0 as refactor_testing_involved_prob
@@ -88,9 +94,9 @@ as no_test_refactor_rate
 , count(distinct if(is_security, ec.commit, null))/count(distinct ec.commit) as security_rate
 
 from
-general_large.commits_files as cf
+general.commits_files as cf
 join
-general_large.enhanced_commits as ec
+general.enhanced_commits as ec
 on
 cf.commit = ec.commit and cf.repo_name = ec.repo_name
 group by
@@ -98,11 +104,11 @@ repo_name
 , file
 ;
 
-drop table if exists general_large.file_first_commit;
+drop table if exists general.file_first_commit;
 
 
 create table
-general_large.file_first_commit
+general.file_first_commit
 as
 select
 fp.repo_name as repo_name
@@ -113,9 +119,9 @@ fp.repo_name as repo_name
 , count(distinct commit) as commits # For uniqueness checking
 , count(distinct cf.author_email) as authors # For uniqueness checking
 from
-general_large.file_properties as fp
+general.file_properties as fp
 join
-general_large.commits_files as cf
+general.commits_files as cf
 on
 fp.repo_name = cf.repo_name
 and
@@ -128,10 +134,10 @@ fp.repo_name
 ;
 
 
-update general_large.file_properties as fp
+update general.file_properties as fp
 set creator_name = ffc.creator_name, creator_email = ffc.creator_email
 from
-general_large.file_first_commit as ffc
+general.file_first_commit as ffc
 where
 fp.repo_name = ffc.repo_name
 and
@@ -142,12 +148,12 @@ and
 ffc.authors = 1 # For uniqueness checking
 ;
 
-drop table if exists general_large.file_first_commit;
+drop table if exists general.file_first_commit;
 
 
-drop table if exists general_large.file_testing_pair_involvement;
+drop table if exists general.file_testing_pair_involvement;
 
-create table general_large.file_testing_pair_involvement
+create table general.file_testing_pair_involvement
 as
 select
 c.repo_name
@@ -160,54 +166,54 @@ c.repo_name
     , 1.0*sum(if(c.test_involved and c.is_refactor, 1,0) )/sum(if(c.is_refactor, 1,0))
     , null) as refactor_testing_involved_prob
 from
-general_large.testing_pairs_commits as c
+general.testing_pairs_commits as c
 group by
 c.repo_name
 , c.file
 ;
 
-update general_large.file_properties as fp
+update general.file_properties as fp
 set testing_involved_prob = aux.testing_involved_prob
 , corrective_testing_involved_prob = aux.corrective_testing_involved_prob
 , refactor_testing_involved_prob = aux.refactor_testing_involved_prob
 from
-general_large.file_testing_pair_involvement as aux
+general.file_testing_pair_involvement as aux
 where
 fp.repo_name = aux.repo_name
 and
 fp.file = aux.file
 ;
 
-drop table if exists general_large.file_testing_pair_involvement;
+drop table if exists general.file_testing_pair_involvement;
 
 
-drop table if exists general_large.file_content_abstraction;
+drop table if exists general.file_content_abstraction;
 
-create table general_large.file_content_abstraction
+create table general.file_content_abstraction
 as
 SELECT
 cnt.repo_name as repo_name
 , path as file
  FROM
- general_large.contents as cnt
+ general.contents as cnt
 WHERE
 general.bq_abstraction(lower(content)) > 0
 ;
 
-update general_large.file_properties as fp
+update general.file_properties as fp
 set abs_content_ratio = 1.0
 from
-general_large.file_content_abstraction as aux
+general.file_content_abstraction as aux
 where
 fp.repo_name = aux.repo_name
 and
 fp.file = aux.file
 ;
 
-update general_large.file_properties as fp
+update general.file_properties as fp
 set fp.size = aux.size
 from
-general_large.contents as aux
+general.contents as aux
 where
 fp.repo_name = aux.repo_name
 and

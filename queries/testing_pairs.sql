@@ -1,18 +1,18 @@
 # general - testing pairs
 
-drop table if exists general_large.testing_pairs;
+drop table if exists general.testing_pairs;
 
 create table
-general_large.testing_pairs
+general.testing_pairs
 as
 select
 tested.repo_name as repo_name
 , tested.path as tested_file
 , testing.path as testing_file
 from
-general_large.files as tested
+general.files as tested
 join
-general_large.files as testing
+general.files as testing
 on
 tested.repo_name = testing.repo_name
 and
@@ -80,23 +80,23 @@ SELECT file
 FROM tab as testing
 ;
 
-drop table if exists general_large.testing_pairs_commits;
+drop table if exists general.testing_pairs_commits;
 
-create table general_large.testing_pairs_commits
+create table general.testing_pairs_commits
 as
 select
 cf.*
 , cf_test_lookup.file is not null as test_involved
 from
-general_large.commits_files as cf
+general.commits_files as cf
 join
-general_large.testing_pairs as pair
+general.testing_pairs as pair
 on
 cf.repo_name = pair.repo_name
 and
 cf.file = pair.tested_file
 left join
-general_large.commits_files as cf_test_lookup
+general.commits_files as cf_test_lookup
 on
 cf.repo_name = cf_test_lookup.repo_name
 and

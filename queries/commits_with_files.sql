@@ -1,8 +1,8 @@
 # commits_with_files.sql
-drop table if exists general_large.commits_files_raw;
+drop table if exists general.commits_files_raw;
 
 create table
-general_large.commits_files_raw
+general.commits_files_raw
 partition by
 commit_month
 cluster by
@@ -13,18 +13,18 @@ select r.repo_name as repo_name
 , commit
 , cast(FORMAT_DATE('%Y-%m-01', DATE(TIMESTAMP_SECONDS(committer.date.seconds))) as date) as  commit_month
 from
-general_large.commits
+general.commits
 cross join  UNNEST(repo_name) as commit_repo_name
 cross join  UNNEST(difference) as difference
 Join
-general_large.repos as r
+general.repos as r
 On commit_repo_name = r.Repo_name
 ;
 
-drop table if exists general_large.commits_files;
+drop table if exists general.commits_files;
 
 create table
-general_large.commits_files
+general.commits_files
 partition by
 commit_month
 cluster by
@@ -53,13 +53,13 @@ as code_extension
 , ec.is_refactor as is_refactor
 
 from
-general_large.commits_files_raw as cfr
+general.commits_files_raw as cfr
 join
-general_large.enhanced_commits as ec
+general.enhanced_commits as ec
 on
 cfr.repo_name = ec.repo_name
 and
 cfr.commit = ec.commit
 ;
 
-drop table if exists general_large.commits_files_raw;
+drop table if exists general.commits_files_raw;

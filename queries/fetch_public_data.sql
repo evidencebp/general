@@ -1,9 +1,9 @@
 # get general into repos table (upload if needed)
-# drop table if exists general_large.repos;
+# drop table if exists general.repos;
 
 
 # Update Is_Company in repos
-update general_large.repos as r
+update general.repos as r
 set
 Is_Company = aux.Is_Company
 from
@@ -13,25 +13,25 @@ r.user = aux.user
 ;
 
 # Copy repositories relevant files
-drop table if exists general_large.files;
+drop table if exists general.files;
 
 create table
-general_large.files
+general.files
 as
 SELECT
 f.*
 FROM
 `bigquery-public-data.github_repos.files` as f
 join
-general_large.repos as r on
+general.repos as r on
 f.repo_name = r.repo_name
 ;
 
 # Copy repositories relevant files' content
-drop table if exists general_large.contents;
+drop table if exists general.contents;
 
 create table
-general_large.contents
+general.contents
 as
 SELECT
 cnt.*
@@ -43,15 +43,15 @@ cnt.*
  FROM
   `bigquery-public-data.github_repos.contents` as cnt
  join
- general_large.files as f
+ general.files as f
  on
  cnt.id = f.id
  ;
 
-drop table if exists general_large.commits;
+drop table if exists general.commits;
 
 create table
-general_large.commits
+general.commits
 as
 select
 c.*
@@ -59,14 +59,14 @@ from
 `bigquery-public-data.github_repos.commits` as c
 cross join  UNNEST(repo_name) as commit_repo_name
 Join
-general_large.repos as r
+general.repos as r
 On commit_repo_name = r.Repo_name
 ;
 
-drop table if exists general_large.flat_commits;
+drop table if exists general.flat_commits;
 
 create table
-general_large.flat_commits
+general.flat_commits
 partition by
 commit_month
 cluster by
@@ -86,7 +86,7 @@ from
 `bigquery-public-data.github_repos.commits` as c
 cross join  UNNEST(repo_name) as commit_repo_name
 Join
-general_large.repos as r
+general.repos as r
 On
 commit_repo_name = r.Repo_name
 cross join  UNNEST(parent) as parent
@@ -95,10 +95,10 @@ r.repo_name
 , commit
 ;
 
-drop table if exists general_large.enhanced_commits;
+drop table if exists general.enhanced_commits;
 
 create table
-general_large.enhanced_commits
+general.enhanced_commits
 partition by
 commit_month
 cluster by
@@ -127,11 +127,11 @@ c.*
 , commit_timestamp as prev_timestamp
 , False as same_date_as_prev
 from
-general_large.flat_commits as c
+general.flat_commits as c
 ;
 
 update
-general_large.enhanced_commits
+general.enhanced_commits
 set
 files = null
 , non_test_files  = null
@@ -143,7 +143,7 @@ true
 ;
 
 update
-general_large.enhanced_commits
+general.enhanced_commits
 set
 is_corrective = (general.bq_corrective(message) > 0)
 where
@@ -152,7 +152,7 @@ true
 
 
 update
-general_large.enhanced_commits
+general.enhanced_commits
 set
 is_adaptive = (general.bq_adaptive(message) > 0)
 where
@@ -160,7 +160,7 @@ true
 ;
 
 update
-general_large.enhanced_commits
+general.enhanced_commits
 set
 is_perfective = (general.bq_perfective(message) > 0)
 where
@@ -168,7 +168,7 @@ true
 ;
 
 update
-general_large.enhanced_commits
+general.enhanced_commits
 set
 is_English = (general.bq_English(message) > 0)
 where
@@ -177,7 +177,7 @@ true
 
 
 update
-general_large.enhanced_commits
+general.enhanced_commits
 set
 is_refactor = (general.bq_refactor(message) > 0)
 where
@@ -185,7 +185,7 @@ true
 ;
 
 update
-general_large.enhanced_commits
+general.enhanced_commits
 set
 is_cursing = (general.bq_swearing(message) > 0)
 where
@@ -193,7 +193,7 @@ true
 ;
 
 update
-general_large.enhanced_commits
+general.enhanced_commits
 set
 is_positive_sentiment = (general.bq_positive_sentiment(message) > 0)
 where
@@ -201,7 +201,7 @@ true
 ;
 
 update
-general_large.enhanced_commits
+general.enhanced_commits
 set
 is_negative_sentiment = general.bq_negative_sentiment(message) > 0
 where
@@ -209,7 +209,7 @@ true
 ;
 
 update
-general_large.enhanced_commits
+general.enhanced_commits
 set
 is_performance = general.bq_performance(message) > 0
 where
@@ -217,7 +217,7 @@ true
 ;
 
 update
-general_large.enhanced_commits
+general.enhanced_commits
 set
 is_security = general.bq_security(message) > 0
 where
@@ -225,11 +225,11 @@ true
 ;
 
 update
-general_large.enhanced_commits
+general.enhanced_commits
 set
 is_typo = general.bq_typo(message) > 0
 where
 true
 ;
 
-drop table if exists general_large.flat_commits;
+drop table if exists general.flat_commits;
