@@ -1,8 +1,8 @@
 # effective_pull_request.sql
-drop table if exists general_ght_large.bug_after_pr;
+drop table if exists general_ght.bug_after_pr;
 
 create table
-general_ght_large.bug_after_pr
+general_ght.bug_after_pr
 as
 select
 epr.id as pull_request_id
@@ -10,9 +10,9 @@ epr.id as pull_request_id
 , min(cf.commit_timestamp) as commit_timestamp
 , min(TIMESTAMP_DIFF(cf.commit_timestamp, epr.merged_at, DAY)) as days_to_first_bug
 from
-general_ght_large.enhanced_pull_requests as epr
+general_ght.enhanced_pull_requests as epr
 join
-general_ght_large.pull_request_commit_files as prcf
+general_ght.pull_request_commit_files as prcf
 on
 epr.id = prcf.pull_request_id
 join
@@ -37,10 +37,10 @@ epr.id
 
 
 
-drop table if exists general_ght_large.pull_request_time_to_first_bug;
+drop table if exists general_ght.pull_request_time_to_first_bug;
 
 create table
-general_ght_large.pull_request_time_to_first_bug
+general_ght.pull_request_time_to_first_bug
 as
 select
 baf.pull_request_id as pull_request_id
@@ -48,13 +48,13 @@ baf.pull_request_id as pull_request_id
 , min(baf.days_to_first_bug) as days_to_first_bug
 , min(baf.commit) as bug_commit
 from
-general_ght_large.bug_after_pr as baf
+general_ght.bug_after_pr as baf
 join
 (select
 pull_request_id
 , min(commit_timestamp) as commit_timestamp
 from
-general_ght_large.bug_after_pr
+general_ght.bug_after_pr
 group by
 pull_request_id) as minTime
 on
@@ -65,25 +65,25 @@ group by
 baf.pull_request_id
 ;
 
-drop view if exists general_ght_large.pull_request_rejection;
+drop view if exists general_ght.pull_request_rejection;
 
 create view
-general_ght_large.pull_request_rejection
+general_ght.pull_request_rejection
 as
 select
 *
 , merged_at is null as rejected
 from
-general_ght_large.enhanced_pull_requests as epr
+general_ght.enhanced_pull_requests as epr
 where
 opened_at is not null
 ;
 
 
-drop table if exists general_ght_large.pull_request_context_180d;
+drop table if exists general_ght.pull_request_context_180d;
 
 create table
-general_ght_large.pull_request_context_180d
+general_ght.pull_request_context_180d
 as
 select
 epr.id
@@ -118,9 +118,9 @@ epr.id
 , avg(if(ec.commit_timestamp <  epr.merged_at and not cf.is_corrective and parents = 1
     , if(non_test_files > 103 , 103 , non_test_files), null)) as avg_coupling_size_capped_before
 from
-general_ght_large.enhanced_pull_requests as epr
+general_ght.enhanced_pull_requests as epr
 join
-general_ght_large.pull_request_commit_files as prcf
+general_ght.pull_request_commit_files as prcf
 on
 epr.id = prcf.pull_request_id
 join
@@ -147,10 +147,10 @@ epr.id
 
 
 
-drop table if exists general_ght_large.pull_request_file_context_180d_improvement;
+drop table if exists general_ght.pull_request_file_context_180d_improvement;
 
 create table
-general_ght_large.pull_request_file_context_180d_improvement
+general_ght.pull_request_file_context_180d_improvement
 as
 select
 *
@@ -164,14 +164,14 @@ select
 , avg_coupling_size_capped_after - avg_coupling_size_capped_before as avg_coupling_size_capped_diff
 
 from
-general_ght_large.pull_request_context_180d
+general_ght.pull_request_context_180d
 ;
 
 
-drop table if exists general_ght_large.effective_pull_request_180d;
+drop table if exists general_ght.effective_pull_request_180d;
 
 create table
-general_ght_large.effective_pull_request_180d
+general_ght.effective_pull_request_180d
 as
 select
 id
@@ -201,23 +201,23 @@ id
 , count(if(ccp_improved and same_date_duration_improved and commits_before > 10 and commits_after > 10 , file, null)) as improved
 , count(if(not ccp_improved or not same_date_duration_improved, file, null)) as degragated
 from
-general_ght_large.pull_request_file_context_180d_improvement
+general_ght.pull_request_file_context_180d_improvement
 group by
 id
 ;
 
 
-update general_ght_large.enhanced_pull_requests as epr
+update general_ght.enhanced_pull_requests as epr
 set days_to_first_bug = fb.days_to_first_bug
 from
-general_ght_large.pull_request_time_to_first_bug as fb
+general_ght.pull_request_time_to_first_bug as fb
 where
 epr.id = fb.pull_request_id
 ;
 
 # Note - the default was set to -1 to make the column numeric
 # Changed now to unknown
-update general_ght_large.enhanced_pull_requests as epr
+update general_ght.enhanced_pull_requests as epr
 set days_to_first_bug = null
 where
 days_to_first_bug = -1

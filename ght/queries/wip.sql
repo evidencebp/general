@@ -1,9 +1,9 @@
 # Ght/wip.sql
-drop table if exists general_ght_large.issue_status_period;
+drop table if exists general_ght.issue_status_period;
 
 
 create table
-general_ght_large.issue_status_period
+general_ght.issue_status_period
 as
 select
 prev.issue_id as issue_id
@@ -13,13 +13,13 @@ prev.issue_id as issue_id
 , max(prev.created_at) as from_date
 , min(cur.created_at) as to_date
 from
-general_ght_large.issue_events as cur
+general_ght.issue_events as cur
 join
-general_ght_large.issue_events as prev
+general_ght.issue_events as prev
 on
 cur.issue_id = prev.issue_id
 join
-general_ght_large.issues as i
+general_ght.issues as i
 on
 prev.issue_id = i.id
 where
@@ -28,11 +28,11 @@ group by
 prev.issue_id
 ;
 
-drop table if exists general_ght_large.current_dates;
+drop table if exists general_ght.current_dates;
 
 
 create table
-general_ght_large.current_dates
+general_ght.current_dates
 as
 SELECT cur_date
 FROM UNNEST(GENERATE_DATE_ARRAY(
@@ -42,11 +42,11 @@ FROM UNNEST(GENERATE_DATE_ARRAY(
      , INTERVAL 1 DAY)) AS cur_date;
 
 
-drop table if exists general_ght_large.developer_wip_by_date;
+drop table if exists general_ght.developer_wip_by_date;
 
 
 create table
-general_ght_large.developer_wip_by_date
+general_ght.developer_wip_by_date
 as
 select
 p.repo_id
@@ -54,9 +54,9 @@ p.repo_id
 , d.cur_date
 , count(distinct p.issue_id) as wip_tasks
 from
-general_ght_large.issue_status_period as p
+general_ght.issue_status_period as p
 join
-general_ght_large.current_dates as d
+general_ght.current_dates as d
 on
 date(p.from_date) <= d.cur_date
 and
@@ -74,25 +74,25 @@ select
 wip_tasks
 , count(*) as cases
 from
-general_ght_large.developer_wip_by_date
+general_ght.developer_wip_by_date
 group by
 wip_tasks
 order by
 wip_tasks
 ;
 
-drop table if exists general_ght_large.repo_wip;
+drop table if exists general_ght.repo_wip;
 
 
 create table
-general_ght_large.repo_wip
+general_ght.repo_wip
 as
 select
 repo_id
 , avg(wip_tasks) as wip_tasks
 , count(*) as cases
 from
-general_ght_large.developer_wip_by_date as w
+general_ght.developer_wip_by_date as w
 group by
 repo_id
 order by
@@ -100,11 +100,11 @@ repo_id
 ;
 
 
-drop table if exists general_ght_large.repo_wip_by_year;
+drop table if exists general_ght.repo_wip_by_year;
 
 
 create table
-general_ght_large.repo_wip_by_year
+general_ght.repo_wip_by_year
 as
 select
 repo_id
@@ -112,7 +112,7 @@ repo_id
 , avg(wip_tasks) as wip_tasks
 , count(*) as cases
 from
-general_ght_large.developer_wip_by_date as w
+general_ght.developer_wip_by_date as w
 group by
 repo_id
 , year

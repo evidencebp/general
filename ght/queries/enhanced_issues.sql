@@ -1,8 +1,8 @@
 # enhanced_issues.sql
-drop table if exists general_ght_large.issue_actions_agg;
+drop table if exists general_ght.issue_actions_agg;
 
 
-create table general_ght_large.issue_actions_agg
+create table general_ght.issue_actions_agg
 as
 select
 issue_id
@@ -31,23 +31,23 @@ issue_id
 , 0 as demilestoned_by
 
 from
-general_ght_large.issue_events
+general_ght.issue_events
 group by
 issue_id
 ;
 
 # Assigned
-drop table if exists general_ght_large.issue_assigned;
+drop table if exists general_ght.issue_assigned;
 
-create table general_ght_large.issue_assigned
+create table general_ght.issue_assigned
 as
 select
 ie.issue_id
 , min(ie.actor_id) as actor
 from
-general_ght_large.issue_events as ie
+general_ght.issue_events as ie
 join
-general_ght_large.issue_actions_agg as iaa
+general_ght.issue_actions_agg as iaa
 on
 ie.issue_id = iaa.issue_id
 and
@@ -61,28 +61,28 @@ count(distinct ie.actor_id) = 1 # Avoid cases of uncertainty
 ;
 
 
-update general_ght_large.issue_actions_agg as iaa
+update general_ght.issue_actions_agg as iaa
 set assigned_by = act.actor
 from
-general_ght_large.issue_assigned as act
+general_ght.issue_assigned as act
 where
 iaa.issue_id = act.issue_id
 ;
-drop table if exists general_ght_large.issue_assigned;
+drop table if exists general_ght.issue_assigned;
 
 
 # Closed
-drop table if exists general_ght_large.issue_closed;
+drop table if exists general_ght.issue_closed;
 
-create table general_ght_large.issue_closed
+create table general_ght.issue_closed
 as
 select
 ie.issue_id
 , min(ie.actor_id) as actor
 from
-general_ght_large.issue_events as ie
+general_ght.issue_events as ie
 join
-general_ght_large.issue_actions_agg as iaa
+general_ght.issue_actions_agg as iaa
 on
 ie.issue_id = iaa.issue_id
 and
@@ -96,28 +96,28 @@ count(distinct ie.actor_id) = 1 # Avoid cases of uncertainty
 ;
 
 
-update general_ght_large.issue_actions_agg as iaa
+update general_ght.issue_actions_agg as iaa
 set closed_by = act.actor
 from
-general_ght_large.issue_closed as act
+general_ght.issue_closed as act
 where
 iaa.issue_id = act.issue_id
 ;
-drop table if exists general_ght_large.issue_closed;
+drop table if exists general_ght.issue_closed;
 
 
 # Merged
-drop table if exists general_ght_large.issue_merged;
+drop table if exists general_ght.issue_merged;
 
-create table general_ght_large.issue_merged
+create table general_ght.issue_merged
 as
 select
 ie.issue_id
 , min(ie.actor_id) as actor
 from
-general_ght_large.issue_events as ie
+general_ght.issue_events as ie
 join
-general_ght_large.issue_actions_agg as iaa
+general_ght.issue_actions_agg as iaa
 on
 ie.issue_id = iaa.issue_id
 and
@@ -131,28 +131,28 @@ count(distinct ie.actor_id) = 1 # Avoid cases of uncertainty
 ;
 
 
-update general_ght_large.issue_actions_agg as iaa
+update general_ght.issue_actions_agg as iaa
 set merged_by = act.actor
 from
-general_ght_large.issue_merged as act
+general_ght.issue_merged as act
 where
 iaa.issue_id = act.issue_id
 ;
-drop table if exists general_ght_large.issue_merged;
+drop table if exists general_ght.issue_merged;
 
 
 # reopened
-drop table if exists general_ght_large.issue_reopened;
+drop table if exists general_ght.issue_reopened;
 
-create table general_ght_large.issue_reopened
+create table general_ght.issue_reopened
 as
 select
 ie.issue_id
 , min(ie.actor_id) as actor
 from
-general_ght_large.issue_events as ie
+general_ght.issue_events as ie
 join
-general_ght_large.issue_actions_agg as iaa
+general_ght.issue_actions_agg as iaa
 on
 ie.issue_id = iaa.issue_id
 and
@@ -166,29 +166,29 @@ count(distinct ie.actor_id) = 1 # Avoid cases of uncertainty
 ;
 
 
-update general_ght_large.issue_actions_agg as iaa
+update general_ght.issue_actions_agg as iaa
 set reopened_by = act.actor
 from
-general_ght_large.issue_reopened as act
+general_ght.issue_reopened as act
 where
 iaa.issue_id = act.issue_id
 ;
 
-drop table if exists general_ght_large.issue_reopened;
+drop table if exists general_ght.issue_reopened;
 
 
 # milestoned
-drop table if exists general_ght_large.issue_milestoned;
+drop table if exists general_ght.issue_milestoned;
 
-create table general_ght_large.issue_milestoned
+create table general_ght.issue_milestoned
 as
 select
 ie.issue_id
 , min(ie.actor_id) as actor
 from
-general_ght_large.issue_events as ie
+general_ght.issue_events as ie
 join
-general_ght_large.issue_actions_agg as iaa
+general_ght.issue_actions_agg as iaa
 on
 ie.issue_id = iaa.issue_id
 and
@@ -202,28 +202,28 @@ count(distinct ie.actor_id) = 1 # Avoid cases of uncertainty
 ;
 
 
-update general_ght_large.issue_actions_agg as iaa
+update general_ght.issue_actions_agg as iaa
 set milestoned_by = act.actor
 from
-general_ght_large.issue_milestoned as act
+general_ght.issue_milestoned as act
 where
 iaa.issue_id = act.issue_id
 ;
-drop table if exists general_ght_large.issue_milestoned;
+drop table if exists general_ght.issue_milestoned;
 
 
 # demilestoned
-drop table if exists general_ght_large.issue_demilestoned;
+drop table if exists general_ght.issue_demilestoned;
 
-create table general_ght_large.issue_demilestoned
+create table general_ght.issue_demilestoned
 as
 select
 ie.issue_id
 , min(ie.actor_id) as actor
 from
-general_ght_large.issue_events as ie
+general_ght.issue_events as ie
 join
-general_ght_large.issue_actions_agg as iaa
+general_ght.issue_actions_agg as iaa
 on
 ie.issue_id = iaa.issue_id
 and
@@ -237,20 +237,20 @@ count(distinct ie.actor_id) = 1 # Avoid cases of uncertainty
 ;
 
 
-update general_ght_large.issue_actions_agg as iaa
+update general_ght.issue_actions_agg as iaa
 set demilestoned_by = act.actor
 from
-general_ght_large.issue_demilestoned as act
+general_ght.issue_demilestoned as act
 where
 iaa.issue_id = act.issue_id
 ;
-drop table if exists general_ght_large.issue_demilestoned;
+drop table if exists general_ght.issue_demilestoned;
 
 
-drop table if exists general_ght_large.enhanced_issues;
+drop table if exists general_ght.enhanced_issues;
 
 create table
-general_ght_large.enhanced_issues
+general_ght.enhanced_issues
 as
 select
 i.*
@@ -279,27 +279,27 @@ i.*
 , TIMESTAMP_DIFF(closed_at, created_at, MINUTE)
         as created_to_closed_minutes
 from
-general_ght_large.issues as i
+general_ght.issues as i
 left join
-general_ght_large.issue_actions_agg as iaa
+general_ght.issue_actions_agg as iaa
 on
 i.id = iaa.issue_id
 ;
 
-drop table if exists general_ght_large.issue_actions_agg;
+drop table if exists general_ght.issue_actions_agg;
 
 
-drop view if exists general_ght_large.issue_longer_than_week;
+drop view if exists general_ght.issue_longer_than_week;
 
 create view
-general_ght_large.issue_longer_than_week
+general_ght.issue_longer_than_week
 as
 select
 *
 , TIMESTAMP_DIFF(closed_at, assigned_at, HOUR) >= 7*24 # About 93% are bellow
         as longer_than_week
 from
-general_ght_large.enhanced_issues
+general_ght.enhanced_issues
 where
 assigned_at is not null
 and
@@ -307,43 +307,43 @@ TIMESTAMP_DIFF(closed_at, assigned_at, HOUR) >=0 # Avoid probably corrupted data
 ;
 
 
-drop view if exists general_ght_large.issue_closed_unmerged;
+drop view if exists general_ght.issue_closed_unmerged;
 
 create view
-general_ght_large.issue_closed_unmerged
+general_ght.issue_closed_unmerged
 as
 select
 *
 , merged_at is not null
         as merged
 from
-general_ght_large.enhanced_issues
+general_ght.enhanced_issues
 where
 closed_at is not null
 ;
 
 
-drop view if exists general_ght_large.issue_reopen;
+drop view if exists general_ght.issue_reopen;
 
 create view
-general_ght_large.issue_reopen
+general_ght.issue_reopen
 as
 select
 *
 , reopened_at is not null
         as reopened
 from
-general_ght_large.enhanced_issues
+general_ght.enhanced_issues
 where
 closed_at is not null
 ;
 
 ######### The code below is not working
 ######### It is an attempt to relate issue labels to issues
-drop table if exists general_ght_large.enhanced_issue_labels;
+drop table if exists general_ght.enhanced_issue_labels;
 
 create table
-general_ght_large.enhanced_issue_labels
+general_ght.enhanced_issue_labels
 as
 select
 distinct
@@ -351,17 +351,17 @@ il.id as issue_id
 , rl.repo_id as repo_id
 , rl.name
 from
-general_ght_large.repo_labels as rl
+general_ght.repo_labels as rl
 join
-general_ght_large.projects as p
+general_ght.projects as p
 on
 rl.repo_id = p.id
 join
-general_ght_large.issue_labels as il
+general_ght.issue_labels as il
 on
 rl.repo_id = il.repo_id
 #join
-#general_ght_large.issues as i
+#general_ght.issues as i
 #on
 #il.id = i.id
 ;
@@ -371,13 +371,13 @@ rl.repo_id = il.repo_id
 select
 *
 from
-general_ght_large.enhanced_issue_labels
+general_ght.enhanced_issue_labels
 where
 regexp_contains(name, 'External/Dependency')
 ;
 
 select *
-from general_ght_large.issues
+from general_ght.issues
 where issue_id = cast(982 as string)
 and
 repo_id = 1924510;
@@ -387,9 +387,9 @@ repo_id = 1924510;
 
 # Both conditions do not match
 select count(*)
-from general_ght_large.repo_labels as rl
+from general_ght.repo_labels as rl
 join
-general_ght_large.issues as i
+general_ght.issues as i
 on
 rl.repo_id = i.repo_id
 #and cast(rl.id as string) = i.issue_id
@@ -400,9 +400,9 @@ where name = 'External/Dependency Issu'
 select
 i.id is null as f
 , count(*)
-from general_ght_large.issue_labels as il
+from general_ght.issue_labels as il
 left join
-general_ght_large.issues as i
+general_ght.issues as i
 on
 cast(il.id as string) = i.issue_id
 and
