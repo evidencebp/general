@@ -57,7 +57,7 @@ publisher={Zenodo}
 
 ```
 
-To collect the data, follow instrctions in queries/main.sql
+To collect the data, follow instructions in queries/main.sql
 
 See here the [linguistic commit classification](https://github.com/evidencebp/commit-classification)
 
