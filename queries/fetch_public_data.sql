@@ -1,3 +1,5 @@
+# fetch_public_data.sql
+
 # get general into repos table (upload if needed)
 # drop table if exists general.repos;
 
