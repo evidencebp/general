@@ -6,7 +6,10 @@ general.2022_above_50
 as
 SELECT
   commit_repo_name as repo_name,
-  COUNT(DISTINCT commit) AS commits,
+  COUNT(DISTINCT
+    CASE
+      WHEN extract(year from TIMESTAMP_SECONDS(committer.date.seconds)) <= 2022 THEN commit
+      ELSE NULL END) AS commits,
   COUNT(DISTINCT
     CASE
       WHEN extract(year from TIMESTAMP_SECONDS(committer.date.seconds)) = 2022 THEN commit
@@ -24,5 +27,8 @@ HAVING
 #    CASE
 #      WHEN extract(year from TIMESTAMP_SECONDS(committer.date.seconds)) = 2022 THEN commit
 #      ELSE NULL END) >= 50
-COUNT(DISTINCT commit) >= 50
+COUNT(DISTINCT
+    CASE
+      WHEN extract(year from TIMESTAMP_SECONDS(committer.date.seconds)) <= 2022 THEN commit
+      ELSE NULL END) >= 50
 ;
