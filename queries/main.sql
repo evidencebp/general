@@ -1,6 +1,7 @@
 # Main.sql
 # Creation instruction
-#  Get repo data (e.g., from CCP)
+#  Get repo data and build its table(e.g., from CCP)
+# Get companies (from data directory) and build its table
 #  Create linguistic procedures - run commit_classification.sql
 #  Run fetch_public_data.sql
 #  Run commits_with_files.sql
